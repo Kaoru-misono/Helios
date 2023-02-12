@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="runtime">
+      <UniqueIdentifier>{692D2264-D50C-A1FF-DE24-2CD64A830761}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source-main">
+      <UniqueIdentifier>{C8D79EBA-348D-17B0-BD81-118729360EB4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="core\runtime\entry-point.hpp">
+      <Filter>runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="core\source-main\engine.hpp">
+      <Filter>source-main</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="core\source-main\engine.cpp">
+      <Filter>source-main</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
