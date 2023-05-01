@@ -7,10 +7,10 @@ set(DEPLOY_CONFIG_DIR "configs/deployment")
 set(DEVELOP_CONFIG_DIR "configs/development")
 
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options("/MP")
-    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
-endif()
+#if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+#    add_compile_options("/MP")
+#    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
+#endif()
 
 add_subdirectory(support)
 

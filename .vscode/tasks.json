@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			//使用本地默认编译器编译cmake
+			"type": "shell",
+			"label": "cmake",
+			"command": "cmake -B ./build ."
+		},
+		{
+			//使用本地默认编译器编译cmake生成的工程
+			"type": "shell",
+			"label": "make",
+			"command": "cmake --build ./build"
+		},
+		{
+			//依次执行前面两个步骤
+			"label": "build",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"cmake",
+				"make"
+			]
+		}
+	]
+}
