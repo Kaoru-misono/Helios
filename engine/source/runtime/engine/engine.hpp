@@ -1,4 +1,9 @@
 #pragma once
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 namespace helios
 {
@@ -12,8 +17,8 @@ namespace helios
 		void shutdown_engine();
 
 		void renderer_tick();
+	private:
+		std::shared_ptr<spdlog::logger> version;
+		GLFWwindow* window;
 	};
-
-	// defined in CLIENT
-	Helios_Engine* create_engine_instance();
 }
