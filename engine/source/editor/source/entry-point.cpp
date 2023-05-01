@@ -3,7 +3,7 @@
 
 int main(int argc, char** argv)
 {
-	auto engine = new helios::Helios_Engine();
+	auto engine = new Helios::Helios_Engine();
 	engine->start_engine();
 	engine->renderer_tick();
 	engine->shutdown_engine();

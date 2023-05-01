@@ -17,7 +17,7 @@
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
             "environment": [],
-            "console": "externalTerminal",
+            "console": "integratedTerminal",
             "preLaunchTask": "build",
             "logging": {
                 "moduleLoad": false

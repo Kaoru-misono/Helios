@@ -4,8 +4,9 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "core/window.hpp"
 
-namespace helios
+namespace Helios
 {
 	class Helios_Engine
 	{
@@ -13,12 +14,12 @@ namespace helios
 		Helios_Engine();
 		virtual ~Helios_Engine();
 
-		void start_engine();
-		void shutdown_engine();
+		auto start_engine() -> void;
+		auto shutdown_engine() -> void;
 
-		void renderer_tick();
+		auto renderer_tick() -> void;
 	private:
 		std::shared_ptr<spdlog::logger> version;
-		GLFWwindow* window;
+		Window _window{};
 	};
 }

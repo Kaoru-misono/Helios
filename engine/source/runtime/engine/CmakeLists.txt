@@ -32,3 +32,15 @@ target_include_directories(
   ${TARGET_NAME} 
   PUBLIC $<BUILD_INTERFACE:${ENGINE_ROOT_DIR}/source/runtime/engine>
 )
+
+target_include_directories(
+  ${TARGET_NAME} 
+  PUBLIC $<BUILD_INTERFACE:${ENGINE_ROOT_DIR}/source>
+  $<INSTALL_INTERFACE:include/${TARGET_NAME}-${PROJECT_VERSION}>
+)
+
+#target_include_directories(
+#  ${TARGET_NAME} 
+#  PUBLIC $<BUILD_INTERFACE:${ENGINE_ROOT_DIR}/source/runtime/render/include>
+#  $<INSTALL_INTERFACE:include/${TARGET_NAME}-${PROJECT_VERSION}>
+#)
