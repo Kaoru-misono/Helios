@@ -1,9 +1,11 @@
 #include "window.hpp"
 #include <iostream>
+#include "core/logger/logger_marco.hpp"
+#include "core/global_context/global_context.hpp"
 
-namespace Helios
+namespace Helios::core
 {
-
+    extern std::shared_ptr<core::Logger> global_log;
     Window::~Window()
     {
         glfwDestroyWindow(m_window);
@@ -14,7 +16,7 @@ namespace Helios
     {
         if(!glfwInit())
         {
-            std::cout << "Failed to initialized GLFW !" << std::endl;
+            LOG_ERROR("Failed to initialized GLFW !");
             return;
         }
 
@@ -26,7 +28,7 @@ namespace Helios
 
         if (m_window == nullptr)
 	    {
-	    	std::cout << "Failed to create window !" << std::endl;
+	    	LOG_ERROR("Failed to create window !");
 	    	glfwTerminate();
 	    	return;
 	    }

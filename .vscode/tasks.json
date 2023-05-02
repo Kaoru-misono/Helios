@@ -5,7 +5,7 @@
 			//使用本地默认编译器编译cmake
 			"type": "shell",
 			"label": "cmake",
-			"command": "cmake -B ./build ."
+			"command": "cmake -S . -B build"
 		},
 		{
 			//使用本地默认编译器编译cmake生成的工程

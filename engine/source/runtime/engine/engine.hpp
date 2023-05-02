@@ -5,6 +5,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "core/window.hpp"
+#include "core/logger/logger.hpp"
 
 namespace Helios
 {
@@ -19,7 +20,6 @@ namespace Helios
 
 		auto renderer_tick() -> void;
 	private:
-		std::shared_ptr<spdlog::logger> version;
-		Window _window{};
+		core::Window _window{};
 	};
 }
