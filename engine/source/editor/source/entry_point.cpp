@@ -5,6 +5,6 @@ int main(int argc, char** argv)
 {
 	auto engine = new Helios::Helios_Engine();
 	engine->run();
-	engine->renderer_tick();
+	
 	engine->shutdown();
 }

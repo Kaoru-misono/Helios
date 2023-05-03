@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include "global_context/global_context.hpp"
 #include "logger/logger.hpp"
+#include "rhi/rhi.hpp"
 
 namespace Helios
 {
@@ -21,5 +22,6 @@ namespace Helios
 		auto renderer_tick() -> void;
 	private:
 	Global_Context& context = g_global_context;
+	std::shared_ptr<RHI> m_rhi;
 	};
 }

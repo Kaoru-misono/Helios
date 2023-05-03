@@ -22,6 +22,8 @@ namespace Helios
         auto init(Window_Info& info) -> void;
         auto should_close() -> bool;
         auto get_window() -> GLFWwindow*;
+        auto swap_buffers() -> void;
+        auto poll_events() -> void;
 
     private:
         GLFWwindow* m_window{ nullptr };

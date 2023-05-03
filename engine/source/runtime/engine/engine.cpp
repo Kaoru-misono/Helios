@@ -5,6 +5,7 @@
 #include "logger/logger.hpp"
 #include "logger/logger_marco.hpp"
 #include "window/window.hpp"
+#include "opengl_rhi/opengl_rhi.hpp"
 
 namespace Helios
 {
@@ -19,20 +20,16 @@ namespace Helios
 	auto Helios_Engine::run() -> void
 	{
 		context.start_context();
-		glfwMakeContextCurrent(context.m_window->get_window());
-
-		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-		{
-			LOG_ERROR("Failed to initialized Glad!");
-			return;
-		}
-		
+		m_rhi = std::make_shared<OpenGL_RHI>();
+		m_rhi->initialize(context.m_window);
+		m_rhi->create_context();
 		LOG_INFO("Welcome to Helios !");
+		renderer_tick();
 	}
 
 	auto Helios_Engine::shutdown() -> void
 	{
-		glfwTerminate();
+		
 		context.shutdown_context();
 	}
 
@@ -44,8 +41,8 @@ namespace Helios
 			glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			glfwSwapBuffers(window->get_window());
-			glfwPollEvents();
+			window->swap_buffers();
+			window->poll_events();
 		}
 	}
 }

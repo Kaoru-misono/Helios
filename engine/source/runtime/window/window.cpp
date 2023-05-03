@@ -42,4 +42,14 @@ namespace Helios
     {
         return m_window;
     }
+
+    auto Window::swap_buffers() -> void
+    {
+        glfwSwapBuffers(m_window);
+    }
+
+    auto Window::poll_events() -> void
+    {
+        glfwPollEvents();
+    }
 }
