@@ -4,7 +4,7 @@
 #include <memory>
 #include <cstdint>
 
-namespace Helios::core
+namespace Helios
 {
     class Logger final
     {

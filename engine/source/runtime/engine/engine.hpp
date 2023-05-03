@@ -4,8 +4,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "core/window.hpp"
-#include "core/logger/logger.hpp"
+#include "global_context/global_context.hpp"
+#include "logger/logger.hpp"
 
 namespace Helios
 {
@@ -15,11 +15,11 @@ namespace Helios
 		Helios_Engine();
 		virtual ~Helios_Engine();
 
-		auto start_engine() -> void;
-		auto shutdown_engine() -> void;
+		auto run() -> void;
+		auto shutdown() -> void;
 
 		auto renderer_tick() -> void;
 	private:
-		core::Window _window{};
+	Global_Context& context = g_global_context;
 	};
 }

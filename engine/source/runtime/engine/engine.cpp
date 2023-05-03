@@ -1,29 +1,25 @@
 #include "engine.hpp"
 #include <iostream>
 #include <memory>
-#include "core/logger/logger.hpp"
-#include "core/logger/logger_marco.hpp"
-#include "core/global_context/global_context.hpp"
+
+#include "logger/logger.hpp"
+#include "logger/logger_marco.hpp"
+#include "window/window.hpp"
 
 namespace Helios
 {
-	Helios_Engine::Helios_Engine()/*version(spdlog::stdout_color_mt("Helios"))*/
-	{
-		//spdlog::set_pattern("%^[%T] %n: %v%$");
-		//version->info("Welcome To Helios !");
-		
+	Helios_Engine::Helios_Engine()
+	{	
 	}
 
 	Helios_Engine::~Helios_Engine()
 	{
 	}
 
-	auto Helios_Engine::start_engine() -> void
+	auto Helios_Engine::run() -> void
 	{
-		core::g_global_context.start_context();
-		core::Window_Info info;
-		_window.init(info);
-		glfwMakeContextCurrent(_window.get_window());
+		context.start_context();
+		glfwMakeContextCurrent(context.m_window->get_window());
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
@@ -34,21 +30,21 @@ namespace Helios
 		LOG_INFO("Welcome to Helios !");
 	}
 
-	auto Helios_Engine::shutdown_engine() -> void
+	auto Helios_Engine::shutdown() -> void
 	{
 		glfwTerminate();
-		core::g_global_context.shutdown_context();
+		context.shutdown_context();
 	}
 
 	auto Helios_Engine::renderer_tick() -> void
 	{
-
-		while (!_window.should_close())
+		auto& window = context.m_window;
+		while (!window->should_close())
 		{
 			glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			glfwSwapBuffers(_window.get_window());
+			glfwSwapBuffers(window->get_window());
 			glfwPollEvents();
 		}
 	}

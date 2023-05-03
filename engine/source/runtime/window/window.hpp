@@ -4,7 +4,7 @@
 #include <string>
 #include<spdlog/spdlog.h>
 
-namespace Helios::core
+namespace Helios
 {
     struct Window_Info
     {

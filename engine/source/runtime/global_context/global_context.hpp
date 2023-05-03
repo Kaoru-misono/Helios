@@ -1,9 +1,10 @@
 #pragma once
 #include <memory>
 #include <string>
-namespace Helios::core
+namespace Helios
 {
     class Logger;
+    class Window;
 
     class Global_Context
     {
@@ -13,6 +14,7 @@ namespace Helios::core
 
     public:
         std::shared_ptr<Logger> m_logger;
+        std::shared_ptr<Window> m_window;
     };
 
     extern Global_Context g_global_context;

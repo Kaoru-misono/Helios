@@ -14,5 +14,5 @@ set(DEVELOP_CONFIG_DIR "configs/development")
 
 add_subdirectory(support)
 
-add_subdirectory(source/runtime/engine)
+add_subdirectory(source/runtime)
 add_subdirectory(source/editor)

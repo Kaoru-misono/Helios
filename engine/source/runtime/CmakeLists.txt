@@ -30,12 +30,12 @@ target_link_libraries(${TARGET_NAME} PUBLIC glfw)
 
 target_include_directories(
   ${TARGET_NAME} 
-  PUBLIC $<BUILD_INTERFACE:${ENGINE_ROOT_DIR}/source/runtime/engine>
+  PUBLIC $<BUILD_INTERFACE:${ENGINE_ROOT_DIR}/source/runtime>
 )
 
 target_include_directories(
   ${TARGET_NAME} 
-  PUBLIC $<BUILD_INTERFACE:${ENGINE_ROOT_DIR}/source>
+  PUBLIC $<BUILD_INTERFACE:${ENGINE_ROOT_DIR}/source/runtime/engine>
   $<INSTALL_INTERFACE:include/${TARGET_NAME}-${PROJECT_VERSION}>
 )
 

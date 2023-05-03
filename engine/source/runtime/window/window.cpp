@@ -1,11 +1,10 @@
 #include "window.hpp"
 #include <iostream>
-#include "core/logger/logger_marco.hpp"
-#include "core/global_context/global_context.hpp"
+#include "logger/logger_marco.hpp"
+#include "global_context/global_context.hpp"
 
-namespace Helios::core
+namespace Helios
 {
-    extern std::shared_ptr<core::Logger> global_log;
     Window::~Window()
     {
         glfwDestroyWindow(m_window);
