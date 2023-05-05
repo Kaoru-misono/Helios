@@ -10,8 +10,9 @@ namespace Helios
     {
     public:
         virtual ~OpenGL_RHI() override final;
-        auto initialize(std::shared_ptr<Window>& window) -> void override final;
+        auto init(std::shared_ptr<Window>& window) -> void override final;
         auto create_context() -> void override final;
+        auto create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag, uint32_t size, uint32_t stride) -> std::shared_ptr<RHI_Buffer> override;
     private:
         GLFWwindow* _window;
     };
