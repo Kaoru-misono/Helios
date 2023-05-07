@@ -15,7 +15,7 @@ namespace Helios
         bind();
         //TODO: STATIC_DRAW be an variable
         glBufferData(type_, size_, data, GL_STATIC_DRAW);
-        LOG_INFO("Buffer creata seccess !");
+        LOG_TRACE("Buffer create seccess !");
     }
 
     auto OpenGL_Buffer::bind() -> void

@@ -22,16 +22,27 @@ namespace Helios
 
     struct Vertex_Attribute_Descriptor
     {
-        std::string element_name;
-        Vertex_Attribute_Type type;
-        uint32_t offset;
-        uint32_t stride;
-        std::shared_ptr<RHI_Buffer> buffer_token;
+        std::string element_name{ "" };
+        Vertex_Attribute_Type type{ Vertex_Attribute_Type::none };
+        uint32_t offset{ 0 };
+        uint32_t size{ 0 };
+        std::shared_ptr<RHI_Buffer> buffer_token{ nullptr };
     };
 
-    struct Vertex_Array_specifier
+    struct Vertex_Array_Specifier
     {
-        uint32_t stride;
+        Vertex_Array_Specifier(const std::initializer_list<Vertex_Attribute_Descriptor>& attributes):attributes_(attributes)
+        {
+            for(auto& attribute : attributes_)
+            {
+                attribute.offset = stride;
+                stride += attribute.size;
+            }
+        }
+        
+        std::vector<Vertex_Attribute_Descriptor>::const_iterator begin() { return attributes_.begin(); }
+        std::vector<Vertex_Attribute_Descriptor>::const_iterator end() { return attributes_.end(); }
+        uint32_t stride{ 0 };
         std::vector<Vertex_Attribute_Descriptor> attributes_;
     };
 
@@ -39,7 +50,7 @@ namespace Helios
     {
         virtual ~RHI_Vertex_Array() {}
         virtual auto bind() -> void = 0;
-        virtual auto set_attributes(Vertex_Array_specifier& specifier) -> void = 0;  
+        virtual auto set_attributes(Vertex_Array_Specifier& specifier) -> void = 0;  
     };
 
     struct RHI_Buffer

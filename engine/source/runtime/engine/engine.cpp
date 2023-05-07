@@ -28,27 +28,38 @@ namespace Helios
 		std::shared_ptr<RHI_Vertex_Array> vertex_array = m_rhi->create_vertex_array();
 
 		float vertices[] = {
-			-1.0, -1.0, 
-			 1.0, -1.0,
-			 0.0,  1.0
+			-0.5, -0.5, 
+			 0.5, -0.5,
+			-0.5,  0.5,
+			 0.5,  0.5,
+			-0.5,  0.5,
+			 0.5, -0.5
 		};
+		float indices[] = {
+			0, 1, 2,
+			2, 3, 1
+		};
+		
 		RHI_Buffer_Create_info info;
 		info.data_array = std::make_shared<Data_Array>(sizeof(vertices), vertices);
-		std::shared_ptr<RHI_Buffer> buffer = m_rhi->create_buffer(info, RHI_Usage_Flag::vertex_buffer, info.data_array->size, 0);
-		Vertex_Array_specifier specifier;
-		specifier.attributes_.clear();
-		Vertex_Attribute_Descriptor attribute;
-		{
-			attribute.element_name = "POSITION";
-			attribute.offset = 0;
-			attribute.type = Vertex_Attribute_Type::Float2;
-			attribute.buffer_token = buffer;
-		}
-		specifier.attributes_.emplace_back(attribute);
-		specifier.stride = 2;
-		vertex_array->set_attributes(specifier);
+		std::shared_ptr<RHI_Buffer> vertex_buffer = m_rhi->create_buffer(info, RHI_Usage_Flag::vertex_buffer, info.data_array->size, 0);
 		
-		renderer_tick();
+		Vertex_Array_Specifier specifier{
+			{ "POSITION", Vertex_Attribute_Type::Float2 }
+		};
+		vertex_array->set_attributes(specifier);
+
+		RHI_Buffer_Create_info index_info;
+		index_info.data_array = std::make_shared<Data_Array>(sizeof(indices), indices);
+		std::shared_ptr<RHI_Buffer> index_buffer = m_rhi->create_buffer(index_info, RHI_Usage_Flag::index_buffer, index_info.data_array->size, 0);
+		// GLuint index_buffer;
+		// glGenBuffers(1, &index_buffer);
+		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+		// glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+		while (!context.m_window->should_close())
+		{
+			renderer_tick();
+		}
 	}
 
 	auto Helios_Engine::shutdown() -> void
@@ -59,15 +70,12 @@ namespace Helios
 
 	auto Helios_Engine::renderer_tick() -> void
 	{
-		auto& window = context.m_window;
-		while (!window->should_close())
-		{
-			glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glDrawArrays(GL_TRIANGLES, 0, 3);
-
-			window->swap_buffers();
-			window->poll_events();
-		}
+		
+		glClearColor(0.8f, 0.5f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		context.m_window->swap_buffers();
+		context.m_window->poll_events();
 	}
 }

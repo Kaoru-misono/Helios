@@ -19,4 +19,6 @@ g_global_context.m_logger ->log(LOG_LEVEL, __VA_ARGS__);
 
 #define LOG_FATAL(...) LOG_HELPER(Log_Level::fatal, __VA_ARGS__);
 
+#define LOG_TRACE(...) LOG_HELPER(Log_Level::trace, __VA_ARGS__);
+
 #define PolitSleep(_ms) std::this_thread::sleep_for(std::chrono::milliseconds(_ms));

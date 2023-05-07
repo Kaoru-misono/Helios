@@ -18,7 +18,7 @@ namespace Helios
         glBindVertexArray(resource);
     }
 
-    auto  OpenGL_Vertex_Array::set_attributes(Vertex_Array_specifier& specifier) -> void
+    auto  OpenGL_Vertex_Array::set_attributes(Vertex_Array_Specifier& specifier) -> void
     {
         auto& attributes = specifier.attributes_;
         int idx = 0;
