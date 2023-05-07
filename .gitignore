@@ -9,6 +9,7 @@
 *.sln
 *.vcxproj
 *.vcxproj.filters
+settings.json
 
 
 # Compiled Object files

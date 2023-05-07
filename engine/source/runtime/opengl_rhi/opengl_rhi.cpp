@@ -1,6 +1,7 @@
 #include "opengl_rhi.hpp"
 #include "logger/logger_marco.hpp"
 #include "opengl_buffer.hpp"
+#include "opengl_vertex_array.hpp"
 
 namespace Helios
 {
@@ -11,12 +12,12 @@ namespace Helios
 
     auto OpenGL_RHI::init(std::shared_ptr<Window>& window) -> void
     {
-        _window = window->get_window();
+        window_ = window->get_window();
     }
 
     auto OpenGL_RHI::create_context() -> void
     {
-        glfwMakeContextCurrent(_window);
+        glfwMakeContextCurrent(window_);
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
@@ -29,6 +30,7 @@ namespace Helios
     {
         if(buffer_create_info.data_array->size == 0)
         {
+            //TODO: when size == 0, use create_info.data_array.size
             LOG_ERROR("Create info has no data!");
             return nullptr;
         }
@@ -41,6 +43,13 @@ namespace Helios
 
         std::shared_ptr<OpenGL_Buffer> buffer = std::make_shared<OpenGL_Buffer>(buffer_type, flag, size, data_array);
         
-        return std::make_shared<RHI_Buffer>();
+        return buffer;
     }
+
+    auto OpenGL_RHI::create_vertex_array() -> std::shared_ptr<RHI_Vertex_Array>
+    {
+        std::shared_ptr<OpenGL_Vertex_Array> vertex_array = std::make_shared<OpenGL_Vertex_Array>();
+        return vertex_array;
+    }
+
 }

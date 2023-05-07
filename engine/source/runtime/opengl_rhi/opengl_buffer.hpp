@@ -9,11 +9,12 @@ namespace Helios
     public:
         OpenGL_Buffer() = default;
         OpenGL_Buffer(GLenum buffer_type, RHI_Usage_Flag flag, uint32_t size, std::shared_ptr<Data_Array> data_array);
+        virtual ~OpenGL_Buffer() { glDeleteBuffers(1, &resource); }
         auto create_glbuffer(GLvoid* data) -> void;
-        auto bind() -> void; 
+        auto bind() -> void override; 
     private:
         GLuint resource;
-        GLenum type;
-        uint32_t _size;
+        GLenum type_;
+        uint32_t size_;
     };
 }
