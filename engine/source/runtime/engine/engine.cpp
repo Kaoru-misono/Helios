@@ -36,8 +36,7 @@ namespace Helios
 			-0.5,  0.5, 0.0, 0.0, 1.0
 		};
 		float indices[] = {
-			0, 1, 2,
-			2, 3, 1
+			0, 1, 2
 		};
 		
 		RHI_Buffer_Create_info info;
@@ -79,7 +78,7 @@ namespace Helios
 		glClearColor(0.8f, 0.5f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 		context.m_window->swap_buffers();
 		context.m_window->poll_events();
 	}
