@@ -13,6 +13,7 @@ namespace Helios
 
     auto Window::init(Window_Info& info) -> void
     {
+        
         if(!glfwInit())
         {
             LOG_ERROR("Failed to initialized GLFW !");
@@ -23,6 +24,7 @@ namespace Helios
         m_height = info.height;
         m_title = info.title;
 	    
+        
         m_window = glfwCreateWindow(m_width, m_height, m_title, nullptr, nullptr);
 
         if (m_window == nullptr)

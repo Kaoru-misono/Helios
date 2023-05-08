@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <optional>
+#include <iostream>
 
 namespace Helios
 {
@@ -29,6 +30,25 @@ namespace Helios
         std::shared_ptr<RHI_Buffer> buffer_token{ nullptr };
     };
 
+    static auto get_size_from_type(Vertex_Attribute_Type& type) -> uint32_t
+    {
+        switch(type)
+        {
+            case Vertex_Attribute_Type::Float:
+                return 1;
+            case Vertex_Attribute_Type::Float2:
+                return 2;
+            case Vertex_Attribute_Type::Float3:
+                return 3;
+            case Vertex_Attribute_Type::Float4:
+                return 4;
+            default:
+                return 0;
+        }
+        //TODO: INFO_WARRING
+        return 0;
+    }
+
     struct Vertex_Array_Specifier
     {
         Vertex_Array_Specifier(const std::initializer_list<Vertex_Attribute_Descriptor>& attributes):attributes_(attributes)
@@ -36,7 +56,8 @@ namespace Helios
             for(auto& attribute : attributes_)
             {
                 attribute.offset = stride;
-                stride += attribute.size;
+                stride += get_size_from_type(attribute.type);
+                //std::cout << attribute.offset << " stride " << stride << std::endl;
             }
         }
         
@@ -75,5 +96,12 @@ namespace Helios
         Data_Array(size_t in_size, void* array): size(in_size), data(array) {}
         size_t size{ 0 };
         void* data{ nullptr };
+    };
+
+    struct RHI_Shader
+    {
+        virtual ~RHI_Shader() {}
+        virtual auto bind() -> void = 0;
+        virtual auto set_uniform() -> void = 0;
     };
 }

@@ -8,6 +8,7 @@
 #include "opengl_rhi/opengl_rhi.hpp"
 #include "rhi/rhi_defination.hpp"
 
+
 namespace Helios
 {
 	Helios_Engine::Helios_Engine()
@@ -26,14 +27,13 @@ namespace Helios
 		m_rhi->create_context();
 		LOG_INFO("Welcome to Helios !");
 		std::shared_ptr<RHI_Vertex_Array> vertex_array = m_rhi->create_vertex_array();
+		//GLuint vertex_array;
+		//glGenVertexArrays(1, &vertex_array);
 
 		float vertices[] = {
-			-0.5, -0.5, 
-			 0.5, -0.5,
-			-0.5,  0.5,
-			 0.5,  0.5,
-			-0.5,  0.5,
-			 0.5, -0.5
+			-0.5, -0.5, 1.0, 0.0, 0.0,
+			 0.5, -0.5, 0.0, 1.0, 0.0, 
+			-0.5,  0.5, 0.0, 0.0, 1.0
 		};
 		float indices[] = {
 			0, 1, 2,
@@ -45,7 +45,8 @@ namespace Helios
 		std::shared_ptr<RHI_Buffer> vertex_buffer = m_rhi->create_buffer(info, RHI_Usage_Flag::vertex_buffer, info.data_array->size, 0);
 		
 		Vertex_Array_Specifier specifier{
-			{ "POSITION", Vertex_Attribute_Type::Float2 }
+			{ "POSITION", Vertex_Attribute_Type::Float2 },
+			{ "COLOR", Vertex_Attribute_Type::Float3 }
 		};
 		vertex_array->set_attributes(specifier);
 
@@ -56,6 +57,10 @@ namespace Helios
 		// glGenBuffers(1, &index_buffer);
 		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
 		// glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+		std::shared_ptr<RHI_Shader> shader = m_rhi->create_shader( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_vert.glsl",
+																   "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_frag.glsl");
+		shader->bind();
 		while (!context.m_window->should_close())
 		{
 			renderer_tick();
@@ -73,7 +78,7 @@ namespace Helios
 		
 		glClearColor(0.8f, 0.5f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		context.m_window->swap_buffers();
 		context.m_window->poll_events();

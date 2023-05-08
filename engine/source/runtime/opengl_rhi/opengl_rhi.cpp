@@ -2,6 +2,7 @@
 #include "logger/logger_marco.hpp"
 #include "opengl_buffer.hpp"
 #include "opengl_vertex_array.hpp"
+#include "opengl_shader.hpp"
 
 namespace Helios
 {
@@ -12,6 +13,9 @@ namespace Helios
 
     auto OpenGL_RHI::init(std::shared_ptr<Window>& window) -> void
     {
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         window_ = window->get_window();
     }
 
@@ -48,8 +52,13 @@ namespace Helios
 
     auto OpenGL_RHI::create_vertex_array() -> std::shared_ptr<RHI_Vertex_Array>
     {
-        std::shared_ptr<OpenGL_Vertex_Array> vertex_array = std::make_shared<OpenGL_Vertex_Array>();
+        std::shared_ptr<RHI_Vertex_Array> vertex_array = std::make_shared<OpenGL_Vertex_Array>();
         return vertex_array;
     }
 
+    auto OpenGL_RHI::create_shader(const std::string& vert_path, const std::string& frag_path) -> std::shared_ptr<RHI_Shader>
+    {
+        std::shared_ptr<RHI_Shader> shader = std::make_shared<OpenGL_Shader>(vert_path, frag_path);
+        return shader;
+    }
 }
