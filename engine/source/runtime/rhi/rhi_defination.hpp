@@ -12,6 +12,11 @@ namespace Helios
     struct Data_Array;
     struct RHI_Buffer;
 
+    struct RHI_Resource
+    {
+
+    };
+
     enum struct Vertex_Attribute_Type: int32_t
     {
         none,
@@ -98,7 +103,7 @@ namespace Helios
         void* data{ nullptr };
     };
 
-    struct RHI_Shader
+    struct RHI_Shader : RHI_Resource 
     {
         virtual ~RHI_Shader() {}
         virtual auto bind() -> void = 0;

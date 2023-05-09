@@ -3,6 +3,7 @@
 #include "window/window.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "opengl_shader.hpp"
 
 namespace Helios
 {

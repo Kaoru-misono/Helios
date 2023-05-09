@@ -7,6 +7,7 @@ namespace Helios
     OpenGL_Vertex_Array::OpenGL_Vertex_Array()
     {
         glGenVertexArrays(1, &resource);
+        bind();
     }
 
     OpenGL_Vertex_Array::~OpenGL_Vertex_Array()

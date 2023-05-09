@@ -33,10 +33,13 @@ namespace Helios
 		float vertices[] = {
 			-0.5, -0.5, 1.0, 0.0, 0.0,
 			 0.5, -0.5, 0.0, 1.0, 0.0, 
-			-0.5,  0.5, 0.0, 0.0, 1.0
+			-0.5,  0.5, 0.0, 0.0, 1.0,
+			 0.5,  0.5, 1.0, 1.0, 1.0
 		};
-		float indices[] = {
-			0, 1, 2
+		
+		unsigned int indices[] = {
+			0, 1, 2,
+			2, 3, 1
 		};
 		
 		RHI_Buffer_Create_info info;
@@ -52,10 +55,6 @@ namespace Helios
 		RHI_Buffer_Create_info index_info;
 		index_info.data_array = std::make_shared<Data_Array>(sizeof(indices), indices);
 		std::shared_ptr<RHI_Buffer> index_buffer = m_rhi->create_buffer(index_info, RHI_Usage_Flag::index_buffer, index_info.data_array->size, 0);
-		// GLuint index_buffer;
-		// glGenBuffers(1, &index_buffer);
-		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-		// glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 		std::shared_ptr<RHI_Shader> shader = m_rhi->create_shader( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_vert.glsl",
 																   "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_frag.glsl");
@@ -77,8 +76,8 @@ namespace Helios
 		
 		glClearColor(0.8f, 0.5f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		context.m_window->swap_buffers();
 		context.m_window->poll_events();
 	}

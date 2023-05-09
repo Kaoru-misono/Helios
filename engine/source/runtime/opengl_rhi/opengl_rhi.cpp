@@ -3,6 +3,7 @@
 #include "opengl_buffer.hpp"
 #include "opengl_vertex_array.hpp"
 #include "opengl_shader.hpp"
+#include <fstream>
 
 namespace Helios
 {
@@ -28,6 +29,12 @@ namespace Helios
 			LOG_ERROR("Failed to initialized Glad!");
 			return;
 		}
+
+        LOG_INFO("OpenGL Info:");
+		LOG_INFO("Vendor : {0}", glGetString(GL_VENDOR));
+		LOG_INFO("Renderer : {0}", glGetString(GL_RENDERER));
+		LOG_INFO("Version : {0}", glGetString(GL_VERSION));
+
     }
 
     auto OpenGL_RHI::create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag, uint32_t size, uint32_t stride) -> std::shared_ptr<RHI_Buffer>
@@ -61,4 +68,38 @@ namespace Helios
         std::shared_ptr<RHI_Shader> shader = std::make_shared<OpenGL_Shader>(vert_path, frag_path);
         return shader;
     }
+
+    //auto OpenGL_RHI::read_file(const std::string& path, Shader_Type& type) -> std::string
+    //{
+    //    auto idx = path.find_last_of(".");
+	//	auto sub_str = path.substr(idx-4, 4);
+	//	LOG_WARN(sub_str);
+	//	if (sub_str == "vert")
+	//		type = Shader_Type::VERTEX_SHADER;
+	//	else if (sub_str == "frag")
+	//		type = Shader_Type::FRAGMENT_SHADER;
+	//	else
+	//		LOG_ERROR("shader path name is illegal !");
+	//    std::string ShaderSrc;
+	//    std::ifstream in(path, std::ios::in, std::ios::binary);
+	//    if (in)
+	//    {
+	//    	in.seekg(0, std::ios::end);
+	//    	size_t size = in.tellg();
+	//    	if (size != -1)
+	//    	{
+	//    		ShaderSrc.resize(size);
+	//    		in.seekg(0, std::ios::beg);
+	//    		in.read(&ShaderSrc[0], size);
+	//    		in.close();
+	//    	}
+	//    	else
+	//    		LOG_ERROR( "Could not read from file ", path );
+	//    }
+	//    else
+	//    	LOG_ERROR( "Could not open the file! " );
+	//    return ShaderSrc;
+    //}
+
+   
 }

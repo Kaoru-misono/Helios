@@ -9,7 +9,11 @@ namespace Helios
 		resource = glCreateProgram();
 		std::string vert_src = read_file(in_vert_path);
 		std::string frag_src = read_file(in_frag_path);
-        compile(vert_src, frag_src);
+        vertex_shader = create_gl_shader(vert_src, Shader_Type::VERTEX_SHADER);
+        fragment_shader = create_gl_shader(frag_src, Shader_Type::FRAGMENT_SHADER);
+		compile(vertex_shader);
+		compile(fragment_shader);
+		link();
     }
 
     OpenGL_Shader::~OpenGL_Shader()
@@ -29,6 +33,14 @@ namespace Helios
 
     auto OpenGL_Shader::read_file(const std::string& path) -> std::string
     {
+		auto idx = path.find_last_of(".");
+		auto sub_str = path.substr(idx-4, 4);
+		if (sub_str == "vert")
+			type = Shader_Type::VERTEX_SHADER;
+		else if (sub_str == "frag")
+			type = Shader_Type::FRAGMENT_SHADER;
+		else
+			LOG_ERROR("shader path name is illegal !");
 	    std::string ShaderSrc;
 	    std::ifstream in(path, std::ios::in, std::ios::binary);
 	    if (in)
@@ -50,74 +62,56 @@ namespace Helios
 	    return ShaderSrc;
     }
 
-    auto OpenGL_Shader::compile(const std::string& vert_src, const std::string& frag_src) -> void
-    {
-        //--------------Create and Compile Shader-----------------------
-	    unsigned int vertex_shader, fragment_shader;
-
+	auto OpenGL_Shader::create_gl_shader(const std::string& src, Shader_Type type) -> unsigned int
+	{
+		//--------------Create and Compile Shader-----------------------
+		unsigned int shader;
 	    // Create an empty vertex shader handle
-	    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+		if(type == Shader_Type::VERTEX_SHADER)
+	    shader = glCreateShader(GL_VERTEX_SHADER);
+		else if(type == Shader_Type::FRAGMENT_SHADER)
+	    shader = glCreateShader(GL_FRAGMENT_SHADER);
+
 	    // Send the vertex shader source code to GL
 	    // Note that std::string's .c_str is NULL character terminated.
-	    const GLchar* source = vert_src.c_str();
-	    glShaderSource(vertex_shader, 1, &source, 0);
+	    const GLchar* source = src.c_str();
+	    glShaderSource(shader, 1, &source, 0);
+		return shader;
+	}
+
+    auto OpenGL_Shader::compile(unsigned int shader) -> void
+    {
 	    // Compile the vertex shader
-	    glCompileShader(vertex_shader);
+	    glCompileShader(shader);
 
 	    GLint is_compiled = 0;
-	    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &is_compiled);
+	    glGetShaderiv(shader, GL_COMPILE_STATUS, &is_compiled);
 	    if (is_compiled == GL_FALSE)
 	    {
 	    	GLint max_length = 0;
-	    	glGetShaderiv(vertex_shader, GL_INFO_LOG_LENGTH, &max_length);
+	    	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &max_length);
 
 	    	// The max_length includes the NULL character
 	    	std::vector<GLchar> infoLog(max_length);
-	    	glGetShaderInfoLog(vertex_shader, max_length, &max_length, &infoLog[0]);
+	    	glGetShaderInfoLog(shader, max_length, &max_length, &infoLog[0]);
 
 	    	// We don't need the shader anymore.
-	    	glDeleteShader(vertex_shader);
+	    	glDeleteShader(shader);
 
 	    	// Use the infoLog as you see fit.
 
 	    	// In this simple program, we'll just leave
 	    	LOG_ERROR( infoLog.data() );
-	    	LOG_ERROR( "Vertex Shader Compilation failed!" );
+	    	LOG_ERROR( " Shader Compilation failed!" );
 	    	return;
 	    }
+    }
 
-	    // Create an empty Fragment shader handle
-	    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	    // Send the Fragment shader source code to GL
-	    // Note that std::string's .c_str is NULL character terminated.
-	    source = frag_src.c_str();
-	    glShaderSource(fragment_shader, 1, &source, 0);
-	    // Compile the Fragment shader
-	    glCompileShader(fragment_shader);
+	auto OpenGL_Shader::link() -> void
+	{
+		glAttachShader(resource, vertex_shader);
+	    glLinkProgram(resource);
 
-	    is_compiled = 0;
-	    glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &is_compiled);
-	    if (is_compiled == GL_FALSE)
-	    {
-	    	GLint max_length = 0;
-	    	glGetShaderiv(fragment_shader, GL_INFO_LOG_LENGTH, &max_length);
-
-	    	// The max_length includes the NULL character
-	    	std::vector<GLchar> infoLog(max_length);
-	    	glGetShaderInfoLog(fragment_shader, max_length, &max_length, &infoLog[0]);
-
-	    	// We don't need the shader anymore.
-	    	glDeleteShader(fragment_shader);
-
-	    	// Use the infoLog as you see fit.
-
-	    	// In this simple program, we'll just leave
-	    	LOG_ERROR( infoLog.data() );
-	    	LOG_ERROR( "Fragment Shader Compilation failed!" );
-	    	return;
-	    }
-
-	    glAttachShader(resource, vertex_shader);
 	    glAttachShader(resource, fragment_shader);
 	    glLinkProgram(resource);
 
@@ -153,6 +147,6 @@ namespace Helios
 
 	    glDeleteShader(vertex_shader);
 	    glDeleteShader(fragment_shader);
-    }
+	}
 
 }
