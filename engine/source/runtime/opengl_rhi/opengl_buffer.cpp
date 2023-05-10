@@ -9,6 +9,12 @@ namespace Helios
         GLvoid* data_base = data_array->data;
         create_glbuffer(data_base);
     }
+
+    OpenGL_Buffer::~OpenGL_Buffer()
+    {
+        glDeleteBuffers(1, &resource);
+    }
+
     auto OpenGL_Buffer::create_glbuffer(GLvoid* data) -> void
     {
         glGenBuffers(1, &resource);

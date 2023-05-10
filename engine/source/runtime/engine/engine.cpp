@@ -7,6 +7,7 @@
 #include "window/window.hpp"
 #include "opengl_rhi/opengl_rhi.hpp"
 #include "rhi/rhi_defination.hpp"
+#include "opengl_rhi/opengl_gpu_program.hpp"
 
 
 namespace Helios
@@ -56,9 +57,14 @@ namespace Helios
 		index_info.data_array = std::make_shared<Data_Array>(sizeof(indices), indices);
 		std::shared_ptr<RHI_Buffer> index_buffer = m_rhi->create_buffer(index_info, RHI_Usage_Flag::index_buffer, index_info.data_array->size, 0);
 
-		std::shared_ptr<RHI_Shader> shader = m_rhi->create_shader( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_vert.glsl",
-																   "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_frag.glsl");
-		shader->bind();
+		std::shared_ptr<RHI_Shader> vertex_shader = m_rhi->create_shader( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_vert.glsl");
+		std::shared_ptr<RHI_Shader> fragment_shader = m_rhi->create_shader("C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_frag.glsl");
+		
+		std::shared_ptr<RHI_GPU_Program> pass = std::make_shared<OpenGL_GPU_Program>();
+		pass->add_vertex_shader(vertex_shader);
+		pass->add_fragment_shader(fragment_shader);
+		pass->link_shader();
+		
 		while (!context.m_window->should_close())
 		{
 			renderer_tick();

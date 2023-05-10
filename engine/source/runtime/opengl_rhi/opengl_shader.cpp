@@ -4,34 +4,19 @@
 
 namespace Helios
 {
-    OpenGL_Shader::OpenGL_Shader(const std::string& in_vert_path, const std::string& in_frag_path)
+    OpenGL_Shader::OpenGL_Shader(const std::string& in_path)
     {
-		resource = glCreateProgram();
-		std::string vert_src = read_file(in_vert_path);
-		std::string frag_src = read_file(in_frag_path);
-        vertex_shader = create_gl_shader(vert_src, Shader_Type::VERTEX_SHADER);
-        fragment_shader = create_gl_shader(frag_src, Shader_Type::FRAGMENT_SHADER);
-		compile(vertex_shader);
-		compile(fragment_shader);
-		link();
+		shader_source = read_file(in_path, type_);
+		shader_id = create_gl_shader(shader_source, type_);
+		compile(shader_id, type_);
     }
 
     OpenGL_Shader::~OpenGL_Shader()
     {
-        glDeleteProgram(resource);
+		glDeleteShader(shader_id);
     }
 
-    auto OpenGL_Shader::bind() ->void
-    {
-        glUseProgram(resource);
-    }
-
-    auto OpenGL_Shader::set_uniform() ->void
-    {
-
-    }
-
-    auto OpenGL_Shader::read_file(const std::string& path) -> std::string
+    auto OpenGL_Shader::read_file(const std::string& path, Shader_Type& type) -> std::string
     {
 		auto idx = path.find_last_of(".");
 		auto sub_str = path.substr(idx-4, 4);
@@ -75,13 +60,15 @@ namespace Helios
 	    // Send the vertex shader source code to GL
 	    // Note that std::string's .c_str is NULL character terminated.
 	    const GLchar* source = src.c_str();
+		LOG_TRACE(source);
 	    glShaderSource(shader, 1, &source, 0);
+		LOG_TRACE("Shader created succeed!");
 		return shader;
 	}
 
-    auto OpenGL_Shader::compile(unsigned int shader) -> void
+    auto OpenGL_Shader::compile(unsigned int shader, Shader_Type type) -> void
     {
-	    // Compile the vertex shader
+	    // Compile the shader
 	    glCompileShader(shader);
 
 	    GLint is_compiled = 0;
@@ -99,54 +86,73 @@ namespace Helios
 	    	glDeleteShader(shader);
 
 	    	// Use the infoLog as you see fit.
-
+			std::string shader_type = type == Shader_Type::VERTEX_SHADER ? "VERTEX_SHADER" : "FRAGMENT_SHADER";
 	    	// In this simple program, we'll just leave
 	    	LOG_ERROR( infoLog.data() );
-	    	LOG_ERROR( " Shader Compilation failed!" );
+	    	LOG_ERROR( shader_type, " Compilation failed!" );
 	    	return;
 	    }
+		LOG_TRACE("Shader compile succeed!");
     }
 
-	auto OpenGL_Shader::link() -> void
+	auto OpenGL_Shader::get_shader_id()const -> unsigned int
 	{
-		glAttachShader(resource, vertex_shader);
-	    glLinkProgram(resource);
-
-	    glAttachShader(resource, fragment_shader);
-	    glLinkProgram(resource);
-
-	    // Note the different functions here: glGetProgram* instead of glGetShader*.
-	    GLint isLinked = 0;
-	    glGetProgramiv(resource, GL_LINK_STATUS, (int*)&isLinked);
-	    if (isLinked == GL_FALSE)
-	    {
-	    	GLint maxLength = 0;
-	    	glGetProgramiv(resource, GL_INFO_LOG_LENGTH, &maxLength);
-
-	    	// The max_length includes the NULL character
-	    	std::vector<GLchar> infoLog(maxLength);
-	    	glGetProgramInfoLog(resource, maxLength, &maxLength, &infoLog[0]);
-
-	    	// We don't need the program anymore.
-	    	glDeleteProgram(resource);
-	    	// Don't leak shaders either.
-	    	glDeleteShader(vertex_shader);
-	    	glDeleteShader(fragment_shader);
-
-	    	// Use the infoLog as you see fit.
-
-	    	// In this simple program, we'll just leave
-	    	LOG_ERROR( infoLog.data() );
-	    	LOG_ERROR( "Shader link failed!" );
-
-	    	return;
-        }
-
-        glDetachShader(resource, vertex_shader);
-	    glDetachShader(resource, fragment_shader);
-
-	    glDeleteShader(vertex_shader);
-	    glDeleteShader(fragment_shader);
+		return shader_id;
 	}
+
+
+	auto OpenGL_Shader::get_shader_source()const -> std::string
+	{
+		return shader_source;
+	}
+
+    auto OpenGL_Shader::get_shader_type()const -> Shader_Type
+	{
+		return type_;
+	}
+
+	// auto OpenGL_Shader::link() -> void
+	// {
+	// 	glAttachShader(resource, vertex_shader);
+	//     glLinkProgram(resource);
+
+	//     glAttachShader(resource, fragment_shader);
+	//     glLinkProgram(resource);
+
+	//     // Note the different functions here: glGetProgram* instead of glGetShader*.
+	//     GLint isLinked = 0;
+	//     glGetProgramiv(resource, GL_LINK_STATUS, (int*)&isLinked);
+	//     if (isLinked == GL_FALSE)
+	//     {
+	//     	GLint maxLength = 0;
+	//     	glGetProgramiv(resource, GL_INFO_LOG_LENGTH, &maxLength);
+
+	//     	// The max_length includes the NULL character
+	//     	std::vector<GLchar> infoLog(maxLength);
+	//     	glGetProgramInfoLog(resource, maxLength, &maxLength, &infoLog[0]);
+
+	//     	// We don't need the program anymore.
+	//     	glDeleteProgram(resource);
+	//     	// Don't leak shaders either.
+	//     	glDeleteShader(vertex_shader);
+	//     	glDeleteShader(fragment_shader);
+
+	//     	// Use the infoLog as you see fit.
+
+	//     	// In this simple program, we'll just leave
+	//     	LOG_ERROR( infoLog.data() );
+	//     	LOG_ERROR( "Shader link failed!" );
+
+	//     	return;
+    //     }
+
+    //     glDetachShader(resource, vertex_shader);
+	//     glDetachShader(resource, fragment_shader);
+
+	//     glDeleteShader(vertex_shader);
+	//     glDeleteShader(fragment_shader);
+	// }
+
+
 
 }

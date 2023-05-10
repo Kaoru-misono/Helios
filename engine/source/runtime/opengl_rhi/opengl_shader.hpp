@@ -5,28 +5,23 @@
 
 namespace Helios
 {
-    enum struct Shader_Type
-    {
-        VERTEX_SHADER,
-        FRAGMENT_SHADER
-    };
-
     class OpenGL_Shader : public RHI_Shader
     {
     public:
-        OpenGL_Shader(const std::string& in_vert_path, const std::string& in_frag_path);
-        virtual ~OpenGL_Shader();
-        auto bind() -> void override;
-        auto set_uniform() -> void override;
+        OpenGL_Shader(const std::string& in_path);
+        virtual ~OpenGL_Shader() override;
+
+        auto get_shader_id()const -> unsigned int override;
+        auto get_shader_source()const -> std::string override;
+        auto get_shader_type()const -> Shader_Type override;
+
+        static auto create_gl_shader(const std::string& src, Shader_Type type) -> unsigned int;
+        static auto compile(unsigned int shader, Shader_Type type) -> void;
+        static auto read_file(const std::string& path, Shader_Type& type) -> std::string;
 
     private:
-        auto read_file(const std::string& path) -> std::string;
-        auto create_gl_shader(const std::string& src, Shader_Type type) -> unsigned int;
-        auto compile(unsigned int shader) -> void;
-        auto link() -> void;
-        unsigned int vertex_shader;
-        unsigned int fragment_shader;
-        Shader_Type type;
-        GLuint resource;
+        unsigned int shader_id;
+        std::string shader_source;
+        Shader_Type type_;
     };
 }

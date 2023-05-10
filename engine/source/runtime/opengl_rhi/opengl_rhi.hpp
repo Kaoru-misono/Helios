@@ -16,7 +16,7 @@ namespace Helios
 
         auto create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag, uint32_t size = 0, uint32_t stride = 0) -> std::shared_ptr<RHI_Buffer> override;
         auto create_vertex_array() -> std::shared_ptr<RHI_Vertex_Array> override;
-        auto create_shader(const std::string& vert_path, const std::string& frag_path) -> std::shared_ptr<RHI_Shader> override;
+        auto create_shader(const std::string& path) -> std::shared_ptr<RHI_Shader> override;
     private:
         GLFWwindow* window_;
     };

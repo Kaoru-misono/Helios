@@ -8,8 +8,8 @@ namespace Helios
     class OpenGL_Vertex_Array : public RHI_Vertex_Array
     {
     public:
-    virtual ~OpenGL_Vertex_Array();
     OpenGL_Vertex_Array();
+    virtual ~OpenGL_Vertex_Array() override;
     auto bind() -> void override;
     auto set_attributes(Vertex_Array_Specifier& specifier) -> void override;
 

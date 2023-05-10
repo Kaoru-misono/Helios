@@ -63,43 +63,9 @@ namespace Helios
         return vertex_array;
     }
 
-    auto OpenGL_RHI::create_shader(const std::string& vert_path, const std::string& frag_path) -> std::shared_ptr<RHI_Shader>
+    auto OpenGL_RHI::create_shader(const std::string& path) -> std::shared_ptr<RHI_Shader>
     {
-        std::shared_ptr<RHI_Shader> shader = std::make_shared<OpenGL_Shader>(vert_path, frag_path);
+        std::shared_ptr<RHI_Shader> shader = std::make_shared<OpenGL_Shader>(path);
         return shader;
-    }
-
-    //auto OpenGL_RHI::read_file(const std::string& path, Shader_Type& type) -> std::string
-    //{
-    //    auto idx = path.find_last_of(".");
-	//	auto sub_str = path.substr(idx-4, 4);
-	//	LOG_WARN(sub_str);
-	//	if (sub_str == "vert")
-	//		type = Shader_Type::VERTEX_SHADER;
-	//	else if (sub_str == "frag")
-	//		type = Shader_Type::FRAGMENT_SHADER;
-	//	else
-	//		LOG_ERROR("shader path name is illegal !");
-	//    std::string ShaderSrc;
-	//    std::ifstream in(path, std::ios::in, std::ios::binary);
-	//    if (in)
-	//    {
-	//    	in.seekg(0, std::ios::end);
-	//    	size_t size = in.tellg();
-	//    	if (size != -1)
-	//    	{
-	//    		ShaderSrc.resize(size);
-	//    		in.seekg(0, std::ios::beg);
-	//    		in.read(&ShaderSrc[0], size);
-	//    		in.close();
-	//    	}
-	//    	else
-	//    		LOG_ERROR( "Could not read from file ", path );
-	//    }
-	//    else
-	//    	LOG_ERROR( "Could not open the file! " );
-	//    return ShaderSrc;
-    //}
-
-   
+    } 
 }
