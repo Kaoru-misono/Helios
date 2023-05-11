@@ -125,4 +125,10 @@ namespace Helios
         virtual auto add_fragment_shader(const std::shared_ptr<RHI_Shader>& fragment_shader) -> void = 0;
         virtual auto link_shader() -> void = 0;
     };
+
+    struct RHI_Texture : RHI_Resource
+    {
+        virtual ~RHI_Texture() {}
+        virtual auto set_texture_unit(unsigned int texture_unit) -> void = 0;
+    };
 }

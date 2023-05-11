@@ -32,10 +32,10 @@ namespace Helios
 		//glGenVertexArrays(1, &vertex_array);
 
 		float vertices[] = {
-			-0.5, -0.5, 1.0, 0.0, 0.0,
-			 0.5, -0.5, 0.0, 1.0, 0.0, 
-			-0.5,  0.5, 0.0, 0.0, 1.0,
-			 0.5,  0.5, 1.0, 1.0, 1.0
+			-0.5, -0.5, 1.0, 0.0, 0.0, 0.0, 0.0,
+			 0.5, -0.5, 0.0, 1.0, 0.0, 1.0, 0.0, 
+			-0.5,  0.5, 0.0, 0.0, 1.0, 0.0, 1.0,
+			 0.5,  0.5, 1.0, 1.0, 1.0, 1.0, 1.0
 		};
 		
 		unsigned int indices[] = {
@@ -49,7 +49,8 @@ namespace Helios
 		
 		Vertex_Array_Specifier specifier{
 			{ "POSITION", Vertex_Attribute_Type::Float2 },
-			{ "COLOR", Vertex_Attribute_Type::Float3 }
+			{ "COLOR", 	  Vertex_Attribute_Type::Float3 },
+			{ "TEXCOORD", Vertex_Attribute_Type::Float2 }
 		};
 		vertex_array->set_attributes(specifier);
 
@@ -58,8 +59,11 @@ namespace Helios
 		std::shared_ptr<RHI_Buffer> index_buffer = m_rhi->create_buffer(index_info, RHI_Usage_Flag::index_buffer, index_info.data_array->size, 0);
 
 		std::shared_ptr<RHI_Shader> vertex_shader = m_rhi->create_shader( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_vert.glsl");
-		std::shared_ptr<RHI_Shader> fragment_shader = m_rhi->create_shader("C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_frag.glsl");
+		std::shared_ptr<RHI_Shader> fragment_shader = m_rhi->create_shader( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_frag.glsl");
 		
+		std::shared_ptr<RHI_Texture> leidian = m_rhi->create_texture( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/texture/leidian.jpg" );
+
+		leidian->set_texture_unit(0);
 		std::shared_ptr<RHI_GPU_Program> pass = std::make_shared<OpenGL_GPU_Program>();
 		pass->add_vertex_shader(vertex_shader);
 		pass->add_fragment_shader(fragment_shader);

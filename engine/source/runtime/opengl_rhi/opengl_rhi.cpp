@@ -3,6 +3,7 @@
 #include "opengl_buffer.hpp"
 #include "opengl_vertex_array.hpp"
 #include "opengl_shader.hpp"
+#include "opengl_texture.hpp"
 #include <fstream>
 
 namespace Helios
@@ -67,5 +68,11 @@ namespace Helios
     {
         std::shared_ptr<RHI_Shader> shader = std::make_shared<OpenGL_Shader>(path);
         return shader;
+    } 
+
+     auto OpenGL_RHI::create_texture(const std::string& path) -> std::shared_ptr<RHI_Texture>
+    {
+        std::shared_ptr<RHI_Texture> texture = std::make_shared<OpenGL_Texture>(path);
+        return texture;
     } 
 }
