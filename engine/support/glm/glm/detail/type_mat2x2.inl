@@ -4,7 +4,7 @@ namespace glm
 {
 	// -- Constructors --
 
-#	if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_DISABLE
+#	if GLM_CONFIG_DEFAULTED_FUNCTIONS == GLM_DISABLE
 		template<typename T, qualifier Q>
 		GLM_FUNC_QUALIFIER GLM_CONSTEXPR mat<2, 2, T, Q>::mat()
 #			if GLM_CONFIG_CTOR_INIT == GLM_CTOR_INITIALIZER_LIST
@@ -22,7 +22,7 @@ namespace glm
 	template<qualifier P>
 	GLM_FUNC_QUALIFIER GLM_CONSTEXPR mat<2, 2, T, Q>::mat(mat<2, 2, T, P> const& m)
 #		if GLM_HAS_INITIALIZER_LISTS
-			: value{col_type(m[0]), col_type(m[1])}
+			: value{m[0], m[1]}
 #		endif
 	{
 #		if !GLM_HAS_INITIALIZER_LISTS

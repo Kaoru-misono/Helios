@@ -34,3 +34,8 @@ if(NOT TARGET stb)
     set_target_properties(stb PROPERTIES FOLDER ${third_party_folder}/stb)
 endif()
 
+if(NOT TARGET glm)
+    add_subdirectory(glm)
+    set_target_properties(glm PROPERTIES FOLDER ${third_party_folder}/glm)
+endif()
+
