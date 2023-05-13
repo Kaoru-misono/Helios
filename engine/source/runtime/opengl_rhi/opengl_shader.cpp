@@ -111,49 +111,4 @@ namespace Helios
 	{
 		return type_;
 	}
-
-	// auto OpenGL_Shader::link() -> void
-	// {
-	// 	glAttachShader(resource, vertex_shader);
-	//     glLinkProgram(resource);
-
-	//     glAttachShader(resource, fragment_shader);
-	//     glLinkProgram(resource);
-
-	//     // Note the different functions here: glGetProgram* instead of glGetShader*.
-	//     GLint isLinked = 0;
-	//     glGetProgramiv(resource, GL_LINK_STATUS, (int*)&isLinked);
-	//     if (isLinked == GL_FALSE)
-	//     {
-	//     	GLint maxLength = 0;
-	//     	glGetProgramiv(resource, GL_INFO_LOG_LENGTH, &maxLength);
-
-	//     	// The max_length includes the NULL character
-	//     	std::vector<GLchar> infoLog(maxLength);
-	//     	glGetProgramInfoLog(resource, maxLength, &maxLength, &infoLog[0]);
-
-	//     	// We don't need the program anymore.
-	//     	glDeleteProgram(resource);
-	//     	// Don't leak shaders either.
-	//     	glDeleteShader(vertex_shader);
-	//     	glDeleteShader(fragment_shader);
-
-	//     	// Use the infoLog as you see fit.
-
-	//     	// In this simple program, we'll just leave
-	//     	LOG_ERROR( infoLog.data() );
-	//     	LOG_ERROR( "Shader link failed!" );
-
-	//     	return;
-    //     }
-
-    //     glDetachShader(resource, vertex_shader);
-	//     glDetachShader(resource, fragment_shader);
-
-	//     glDeleteShader(vertex_shader);
-	//     glDeleteShader(fragment_shader);
-	// }
-
-
-
 }

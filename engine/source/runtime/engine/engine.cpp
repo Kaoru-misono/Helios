@@ -1,6 +1,7 @@
 #include "engine.hpp"
 #include <iostream>
 #include <memory>
+#include <glm/glm.hpp>
 
 #include "logger/logger.hpp"
 #include "logger/logger_marco.hpp"
@@ -8,6 +9,7 @@
 #include "opengl_rhi/opengl_rhi.hpp"
 #include "rhi/rhi_defination.hpp"
 #include "opengl_rhi/opengl_gpu_program.hpp"
+#include "render/camera.hpp"
 
 
 namespace Helios
@@ -28,15 +30,16 @@ namespace Helios
 		m_rhi->create_context();
 		LOG_INFO("Welcome to Helios !");
 		std::shared_ptr<RHI_Vertex_Array> vertex_array = m_rhi->create_vertex_array();
-		//GLuint vertex_array;
-		//glGenVertexArrays(1, &vertex_array);
+
 
 		float vertices[] = {
-			-0.5, -0.5, 1.0, 0.0, 0.0, 0.0, 0.0,
-			 0.5, -0.5, 0.0, 1.0, 0.0, 1.0, 0.0, 
-			-0.5,  0.5, 0.0, 0.0, 1.0, 0.0, 1.0,
-			 0.5,  0.5, 1.0, 1.0, 1.0, 1.0, 1.0
+			-0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+			 0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 
+			-0.5,  0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0,
+			 0.5,  0.5, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0
 		};
+
+		glm::vec3 position{1.0f, 1.0f, 1.0f};
 		
 		unsigned int indices[] = {
 			0, 1, 2,
@@ -48,7 +51,7 @@ namespace Helios
 		std::shared_ptr<RHI_Buffer> vertex_buffer = m_rhi->create_buffer(info, RHI_Usage_Flag::vertex_buffer, info.data_array->size, 0);
 		
 		Vertex_Array_Specifier specifier{
-			{ "POSITION", Vertex_Attribute_Type::Float2 },
+			{ "POSITION", Vertex_Attribute_Type::Float3 },
 			{ "COLOR", 	  Vertex_Attribute_Type::Float3 },
 			{ "TEXCOORD", Vertex_Attribute_Type::Float2 }
 		};
@@ -68,6 +71,14 @@ namespace Helios
 		pass->add_vertex_shader(vertex_shader);
 		pass->add_fragment_shader(fragment_shader);
 		pass->link_shader();
+		
+		Scene::Camera camera;
+		camera.set_camera_properties(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f));
+
+		pass->set_uniform("view_matrix", camera.get_view_matrix());
+		pass->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+
 		
 		while (!context.m_window->should_close())
 		{

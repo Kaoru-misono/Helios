@@ -83,4 +83,16 @@ namespace Helios
         }
 
     }
+
+    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::mat4& values) -> void
+    {
+        GLint location = glGetUniformLocation(resource, name.c_str());
+	    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(values));
+    }
+
+    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::vec3& values) -> void
+    {
+        GLint location = glGetUniformLocation(resource, name.c_str());
+	    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(values));
+    }
 }
