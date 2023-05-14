@@ -9,18 +9,26 @@ namespace Helios
     class OpenGL_Texture : public RHI_Texture
     {
     public:
+        struct Texture_Data
+        {
+            unsigned char* data;
+            GLenum format;
+            int width, height, nrComponents;
+        };
+
         OpenGL_Texture(const std::string& path);
         ~OpenGL_Texture() override;
 
         auto set_texture_unit(unsigned int texture_unit) -> void override;
-
-        static auto load_texture(const std::string& path, GLenum format) -> GLuint;
-
         auto get_texture_unit() -> unsigned int;
+        
+        static auto load_texture(const std::string& path) -> Texture_Data;
+        
+        auto create_texture() -> void;
 
     private:
         GLuint resource;
-        GLenum format;
+        Texture_Data texture_data;
         unsigned int texture_unit_;
     };
 }

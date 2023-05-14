@@ -84,13 +84,43 @@ namespace Helios
 
     }
 
-    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::mat4& values) -> void
+    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const int value ) -> void
     {
         GLint location = glGetUniformLocation(resource, name.c_str());
-	    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(values));
+	    glUniform1i(location, value);
+    }
+
+    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const float value ) -> void
+    {
+        GLint location = glGetUniformLocation(resource, name.c_str());
+	    glUniform1f(location, value);
+    }
+
+    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::vec2& values) -> void
+    {
+        GLint location = glGetUniformLocation(resource, name.c_str());
+	    glUniform2f(location, values.x, values.y);
     }
 
     auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::vec3& values) -> void
+    {
+        GLint location = glGetUniformLocation(resource, name.c_str());
+	    glUniform3f(location, values.x, values.y, values.z);
+    }
+
+    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::vec4& values) -> void
+    {
+        GLint location = glGetUniformLocation(resource, name.c_str());
+	    glUniform4f(location, values.x, values.y, values.z, values.w);
+    }
+
+    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::mat3& values) -> void
+    {
+        GLint location = glGetUniformLocation(resource, name.c_str());
+	    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(values));
+    }
+
+    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::mat4& values) -> void
     {
         GLint location = glGetUniformLocation(resource, name.c_str());
 	    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(values));

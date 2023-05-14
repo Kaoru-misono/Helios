@@ -61,10 +61,10 @@ namespace Helios
 		index_info.data_array = std::make_shared<Data_Array>(sizeof(indices), indices);
 		std::shared_ptr<RHI_Buffer> index_buffer = m_rhi->create_buffer(index_info, RHI_Usage_Flag::index_buffer, index_info.data_array->size, 0);
 
-		std::shared_ptr<RHI_Shader> vertex_shader = m_rhi->create_shader( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_vert.glsl");
-		std::shared_ptr<RHI_Shader> fragment_shader = m_rhi->create_shader( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/shader/test_frag.glsl");
+		std::shared_ptr<RHI_Shader> vertex_shader = m_rhi->create_shader( "shader/test_vert.glsl");
+		std::shared_ptr<RHI_Shader> fragment_shader = m_rhi->create_shader( "shader/test_frag.glsl");
 		
-		std::shared_ptr<RHI_Texture> leidian = m_rhi->create_texture( "C:/Users/30931/Desktop/Helios/Helios/engine/asset/texture/leidian.jpg" );
+		std::shared_ptr<RHI_Texture> leidian = m_rhi->create_texture( "texture/leidian.jpg" );
 
 		leidian->set_texture_unit(0);
 		std::shared_ptr<RHI_GPU_Program> pass = std::make_shared<OpenGL_GPU_Program>();

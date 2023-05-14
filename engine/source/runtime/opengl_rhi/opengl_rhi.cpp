@@ -32,8 +32,8 @@ namespace Helios
 		}
 
         LOG_INFO("OpenGL Info:");
-		LOG_INFO("Vendor : {0}", glGetString(GL_VENDOR));
-		LOG_INFO("Renderer : {0}", glGetString(GL_RENDERER));
+		LOG_INFO("Support : {0}", glGetString(GL_VENDOR));
+		LOG_INFO("GPU : {0}", glGetString(GL_RENDERER));
 		LOG_INFO("Version : {0}", glGetString(GL_VERSION));
 
     }
@@ -66,13 +66,13 @@ namespace Helios
 
     auto OpenGL_RHI::create_shader(const std::string& path) -> std::shared_ptr<RHI_Shader>
     {
-        std::shared_ptr<RHI_Shader> shader = std::make_shared<OpenGL_Shader>(path);
+        std::shared_ptr<RHI_Shader> shader = std::make_shared<OpenGL_Shader>("C:/Users/30931/Desktop/Helios/Helios/engine/asset/" + path);
         return shader;
     } 
 
      auto OpenGL_RHI::create_texture(const std::string& path) -> std::shared_ptr<RHI_Texture>
     {
-        std::shared_ptr<RHI_Texture> texture = std::make_shared<OpenGL_Texture>(path);
+        std::shared_ptr<RHI_Texture> texture = std::make_shared<OpenGL_Texture>("C:/Users/30931/Desktop/Helios/Helios/engine/asset/" + path);
         return texture;
     } 
 }

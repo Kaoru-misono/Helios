@@ -16,6 +16,7 @@ namespace Helios::Scene
         position_ = position;
         up_vector = up;
         glm::vec3 forward = glm::normalize(target - position_);
+        // think about forward axis and negative_z will coincide after view transform
         rotation_ = glm::qua(forward, negative_z);
 
         glm::vec3 right = glm::cross(forward, up_vector);
@@ -41,7 +42,8 @@ namespace Helios::Scene
 
     auto Camera::get_projection_matrix()const -> glm::mat4
     {
-        glm::mat4 perspective_matrix = glm::perspective(glm::radians(fov), aspect, near_plane, far_plane);
+        //reverse z
+        glm::mat4 perspective_matrix = glm::perspective(glm::radians(fov_), aspect_, far_plane, near_plane);
         return perspective_matrix;
     }
 
