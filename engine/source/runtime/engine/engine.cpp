@@ -11,6 +11,10 @@
 #include "opengl_rhi/opengl_gpu_program.hpp"
 #include "render/camera.hpp"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 
 namespace Helios
 {
