@@ -696,7 +696,7 @@ typedef unsigned char validate_uint32[sizeof(stbi__uint32)==4 ? 1 : -1];
 
 #if _MSC_VER >= 1400  // not VC6
 #include <intrin.h> // __cpuid
-__attribute__((unused))static int stbi__cpuid3(void)
+static int stbi__cpuid3(void)
 {
    int info[4];
    __cpuid(info,1);

@@ -2,6 +2,7 @@
 .vs/
 /bin 
 /build
+build/
 
 
 #Files
@@ -32,3 +33,4 @@ settings.json
 *.la
 *.a
 *.lib
+

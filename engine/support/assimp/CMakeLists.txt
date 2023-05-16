@@ -74,7 +74,7 @@ OPTION( ASSIMP_DOUBLE_PRECISION
 )
 OPTION( ASSIMP_OPT_BUILD_PACKAGES
   "Set to ON to generate CPack configuration files and packaging targets"
-  ON
+  OFF
 )
 OPTION( ASSIMP_ANDROID_JNIIOSYSTEM
   "Android JNI IOSystem support is active"
@@ -98,11 +98,11 @@ OPTION ( ASSIMP_BUILD_SAMPLES
 )
 OPTION ( ASSIMP_BUILD_TESTS
   "If the test suite for Assimp is built in addition to the library."
-  OFF
+  ON
 )
 OPTION ( ASSIMP_COVERALLS
   "Enable this to measure test coverage."
-  ON
+  OFF
 )
 OPTION( ASSIMP_INSTALL
   "Disable this if you want to use assimp as a submodule."
@@ -712,6 +712,10 @@ IF ( ASSIMP_BUILD_SAMPLES )
     ADD_SUBDIRECTORY( samples/SimpleTexturedDirectx11 )
   ENDIF ()
   ADD_SUBDIRECTORY( samples/SimpleOpenGL/ )
+ENDIF ()
+
+IF ( ASSIMP_BUILD_TESTS )
+  ADD_SUBDIRECTORY( test/ )
 ENDIF ()
 
 # Generate a pkg-config .pc, revision.h, and config.h for the Assimp library.

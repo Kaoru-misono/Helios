@@ -10,7 +10,7 @@
 :: Also see: https://github.com/assimp/assimp/pull/2646
 
 SET SOURCE_DIR=.
-SET GENERATOR=Visual Studio 16 2022
+SET GENERATOR=Visual Studio 16 2019
 
 SET BINARIES_DIR="./build/Win32"
 cmake . -G "%GENERATOR%" -A Win32 -S %SOURCE_DIR% -B %BINARIES_DIR%
