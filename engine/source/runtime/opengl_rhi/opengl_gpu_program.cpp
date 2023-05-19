@@ -6,6 +6,7 @@ namespace Helios
 {
     OpenGL_GPU_Program::OpenGL_GPU_Program()
     {
+        uniforms.clear();
         resource = glCreateProgram();
         glUseProgram(resource);
     }
@@ -84,45 +85,37 @@ namespace Helios
 
     }
 
-    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const int value ) -> void
+    auto OpenGL_GPU_Program::set_uniform(const std::string& name, std::any const& value) -> void
     {
-        GLint location = glGetUniformLocation(resource, name.c_str());
-	    glUniform1i(location, value);
-    }
+        if(!value.has_value())
+        return;
 
-    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const float value ) -> void
-    {
-        GLint location = glGetUniformLocation(resource, name.c_str());
-	    glUniform1f(location, value);
-    }
+        auto idx = uniforms.find(name);
+        if (idx != uniforms.end())
+        {
+            LOG_WARN("Uniform:[ {0} ]has exists!", name);
+            return;
+        }
+        else
+            uniforms.emplace(name);
 
-    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::vec2& values) -> void
-    {
-        GLint location = glGetUniformLocation(resource, name.c_str());
-	    glUniform2f(location, values.x, values.y);
-    }
+        bind(); // bind before you set uniform
 
-    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::vec3& values) -> void
-    {
-        GLint location = glGetUniformLocation(resource, name.c_str());
-	    glUniform3f(location, values.x, values.y, values.z);
-    }
+        const std::string type = value.type().name();
+        if      (type == "int")
+            set_uniform_impl(name, std::any_cast<int>(value));
+        else if (type == "float")
+            set_uniform_impl(name, std::any_cast<float>(value));
+        else if (type == "struct glm::vec<2,float,0>")
+            set_uniform_impl(name, std::any_cast<glm::vec2>(value));
+        else if (type == "struct glm::vec<3,float,0>")
+            set_uniform_impl(name, std::any_cast<glm::vec3>(value));
+        else if (type == "struct glm::vec<4,float,0>")
+            set_uniform_impl(name, std::any_cast<glm::vec4>(value));
+        else if (type == "struct glm::mat<3,3,float,0>")
+            set_uniform_impl(name, std::any_cast<glm::mat3>(value));
+        else if (type == "struct glm::mat<4,4,float,0>")
+            set_uniform_impl(name, std::any_cast<glm::mat4>(value));
 
-    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::vec4& values) -> void
-    {
-        GLint location = glGetUniformLocation(resource, name.c_str());
-	    glUniform4f(location, values.x, values.y, values.z, values.w);
-    }
-
-    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::mat3& values) -> void
-    {
-        GLint location = glGetUniformLocation(resource, name.c_str());
-	    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(values));
-    }
-
-    auto OpenGL_GPU_Program::set_uniform(const std::string& name, const glm::mat4& values) -> void
-    {
-        GLint location = glGetUniformLocation(resource, name.c_str());
-	    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(values));
     }
 }

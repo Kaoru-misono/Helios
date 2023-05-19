@@ -7,6 +7,7 @@
 #include <vector>
 #include <optional>
 #include <iostream>
+#include <any>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
@@ -127,13 +128,8 @@ namespace Helios
         virtual auto add_vertex_shader(const std::shared_ptr<RHI_Shader>& vertex_shader) -> void = 0;
         virtual auto add_fragment_shader(const std::shared_ptr<RHI_Shader>& fragment_shader) -> void = 0;
         virtual auto link_shader() -> void = 0;
-        virtual auto set_uniform(const std::string& name, const int        value ) -> void = 0;
-        virtual auto set_uniform(const std::string& name, const float      value ) -> void = 0;
-        virtual auto set_uniform(const std::string& name, const glm::vec2& values) -> void = 0;
-        virtual auto set_uniform(const std::string& name, const glm::vec3& values) -> void = 0;
-        virtual auto set_uniform(const std::string& name, const glm::vec4& values) -> void = 0;
-        virtual auto set_uniform(const std::string& name, const glm::mat3& values) -> void = 0;
-        virtual auto set_uniform(const std::string& name, const glm::mat4& values) -> void = 0;
+        virtual auto set_uniform(const std::string& name, std::any const& value) -> void = 0;
+
     };
 
     struct RHI_Texture : RHI_Resource
