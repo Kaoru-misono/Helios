@@ -1,6 +1,7 @@
 #include "engine.hpp"
 #include <iostream>
 #include <memory>
+#include <any>
 #include <glm/glm.hpp>
 
 #include "logger/logger.hpp"
@@ -14,6 +15,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <q_model.hpp>
 
 
 namespace Helios
@@ -50,6 +52,9 @@ namespace Helios
 			2, 3, 1
 		};
 		
+		//Model marry = Model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Alisya/pink.pmx");
+		//LOG_INFO("mesh: {0}, {1}", marry.meshes.size(), marry.meshes.size()); 
+
 		RHI_Buffer_Create_info info;
 		info.data_array = std::make_shared<Data_Array>(sizeof(vertices), vertices);
 		std::shared_ptr<RHI_Buffer> vertex_buffer = m_rhi->create_buffer(info, RHI_Usage_Flag::vertex_buffer, info.data_array->size, 0);

@@ -75,6 +75,7 @@ namespace Helios
             GLint location = glGetUniformLocation(resource, name.c_str());
 	        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
         }
+        
         std::shared_ptr<RHI_Shader> vertex_shader_;
         std::shared_ptr<RHI_Shader> fragment_shader_;
         std::unordered_set<std::string> uniforms;
