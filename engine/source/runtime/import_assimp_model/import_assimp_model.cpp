@@ -306,9 +306,17 @@ namespace Helios
             return node_addr_to_idx;
         };
 
+        Assimp_Model result;
+        {
+            load_textures(result);
+            load_materials(result);
+            load_meshes(result);
 
+            //for bones and animation
+            auto node_addr_to_idx = load_hierarchy(result);
+        }
 
-        return Assimp_Model();
+        return result;
     }
 
 }

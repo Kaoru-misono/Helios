@@ -166,7 +166,7 @@ namespace Helios
             std::string name;
         };
 
-        auto load_model(std::string const& path, Assimp_Config config) -> Assimp_Model;
+        static auto load_model(std::string const& path, Assimp_Config config) -> Assimp_Model;
     
     private:
         std::vector<Node> nodes;        // guaranteed to be in level-order

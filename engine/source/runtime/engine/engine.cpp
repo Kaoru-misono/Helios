@@ -17,6 +17,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <q_model.hpp>
+#include "import_assimp_model/import_assimp_model.hpp"
 
 
 namespace Helios
@@ -52,7 +53,8 @@ namespace Helios
 			0, 1, 2,
 			2, 3, 1
 		};
-
+		Assimp_Config config;
+		Assimp_Model marry = Assimp_Model::load_model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Marry.obj", config);
 		//Model marry = Model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Alisya/pink.pmx");
 		//LOG_INFO("mesh: {0}, {1}", marry.meshes.size(), marry.meshes.size());
 
