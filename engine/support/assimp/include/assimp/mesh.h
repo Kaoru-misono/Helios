@@ -1002,7 +1002,7 @@ struct aiSkeletonBone {
 #endif // __cplusplus
 };
 /**
- *  @brief  
+ *  @brief
  */
 struct aiSkeleton {
     /**

@@ -62,8 +62,8 @@ namespace Helios
 	    const GLchar* source = src.c_str();
 	    glShaderSource(shader, 1, &source, 0);
 
-		std::string shader_type = type == Shader_Type::VERTEX_SHADER ? "VERTEX_SHADER" : "FRAGMENT_SHADER";
-		LOG_TRACE(shader_type + " created succeed!");
+		std::string shader_type = type == Shader_Type::VERTEX_SHADER ? "Vertex shader" : "Fragment shader";
+		//LOG_TRACE(shader_type + " created succeed!");
 		return shader;
 	}
 
@@ -72,7 +72,7 @@ namespace Helios
 	    // Compile the shader
 	    glCompileShader(shader);
 
-		std::string shader_type = type == Shader_Type::VERTEX_SHADER ? "VERTEX_SHADER" : "FRAGMENT_SHADER";
+		std::string shader_type = type == Shader_Type::VERTEX_SHADER ? "Vertex shader" : "Fragment shader";
 	    GLint is_compiled = 0;
 	    glGetShaderiv(shader, GL_COMPILE_STATUS, &is_compiled);
 	    if (is_compiled == GL_FALSE)
@@ -93,7 +93,7 @@ namespace Helios
 	    	LOG_ERROR( shader_type, " Compilation failed!" );
 	    	return;
 	    }
-		LOG_TRACE(shader_type + " compile succeed!");
+		//LOG_TRACE(shader_type + " compile succeed!");
     }
 
 	auto OpenGL_Shader::get_shader_id()const -> unsigned int

@@ -17,7 +17,7 @@ g_global_context.m_logger ->log(LOG_LEVEL, __VA_ARGS__);
 
 #define LOG_ERROR(...) LOG_HELPER(Log_Level::error, __VA_ARGS__);
 
-#define LOG_FATAL(...) LOG_HELPER(Log_Level::fatal, __VA_ARGS__);
+#define LOG_FETAL(...) LOG_HELPER(Log_Level::fetal, __VA_ARGS__);
 
 #define LOG_TRACE(...) LOG_HELPER(Log_Level::trace, __VA_ARGS__);
 

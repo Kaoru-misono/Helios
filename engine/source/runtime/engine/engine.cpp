@@ -3,6 +3,7 @@
 #include <memory>
 #include <any>
 #include <glm/glm.hpp>
+#include <filesystem>
 
 #include "logger/logger.hpp"
 #include "logger/logger_marco.hpp"
@@ -21,7 +22,7 @@
 namespace Helios
 {
 	Helios_Engine::Helios_Engine()
-	{	
+	{
 	}
 
 	Helios_Engine::~Helios_Engine()
@@ -40,25 +41,25 @@ namespace Helios
 
 		float vertices[] = {
 			-0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
-			 0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 
+			 0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0,
 			-0.5,  0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0,
 			 0.5,  0.5, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0
 		};
 
 		glm::vec3 position{1.0f, 1.0f, 1.0f};
-		
+
 		unsigned int indices[] = {
 			0, 1, 2,
 			2, 3, 1
 		};
-		
+
 		//Model marry = Model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Alisya/pink.pmx");
-		//LOG_INFO("mesh: {0}, {1}", marry.meshes.size(), marry.meshes.size()); 
+		//LOG_INFO("mesh: {0}, {1}", marry.meshes.size(), marry.meshes.size());
 
 		RHI_Buffer_Create_info info;
 		info.data_array = std::make_shared<Data_Array>(sizeof(vertices), vertices);
 		std::shared_ptr<RHI_Buffer> vertex_buffer = m_rhi->create_buffer(info, RHI_Usage_Flag::vertex_buffer, info.data_array->size, 0);
-		
+
 		Vertex_Array_Specifier specifier{
 			{ "POSITION", Vertex_Attribute_Type::Float3 },
 			{ "COLOR", 	  Vertex_Attribute_Type::Float3 },
@@ -72,7 +73,7 @@ namespace Helios
 
 		std::shared_ptr<RHI_Shader> vertex_shader = m_rhi->create_shader( "shader/test_vert.glsl");
 		std::shared_ptr<RHI_Shader> fragment_shader = m_rhi->create_shader( "shader/test_frag.glsl");
-		
+
 		std::shared_ptr<RHI_Texture> leidian = m_rhi->create_texture( "texture/leidian.jpg" );
 
 		leidian->set_texture_unit(0);
@@ -80,7 +81,7 @@ namespace Helios
 		pass->add_vertex_shader(vertex_shader);
 		pass->add_fragment_shader(fragment_shader);
 		pass->link_shader();
-		
+
 		Scene::Camera camera;
 		camera.set_camera_properties(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f));
 
@@ -88,7 +89,9 @@ namespace Helios
 		pass->set_uniform("projection_matrix", camera.get_projection_matrix());
 
 
-		
+
+
+
 		while (!context.m_window->should_close())
 		{
 			renderer_tick();
@@ -97,13 +100,13 @@ namespace Helios
 
 	auto Helios_Engine::shutdown() -> void
 	{
-		
+
 		context.shutdown_context();
 	}
 
 	auto Helios_Engine::renderer_tick() -> void
 	{
-		
+
 		glClearColor(0.8f, 0.5f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);

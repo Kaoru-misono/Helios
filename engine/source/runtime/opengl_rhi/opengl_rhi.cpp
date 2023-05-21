@@ -5,9 +5,28 @@
 #include "opengl_shader.hpp"
 #include "opengl_texture.hpp"
 #include <fstream>
+#include <filesystem>
 
 namespace Helios
 {
+    namespace
+    {
+        std::string bin_dir = std::filesystem::current_path().string();
+
+        auto get_source_dir = [](std::string const& bin_dir) -> std::string
+        {
+            auto ps = bin_dir.rfind("Helios");
+
+			auto source_path = bin_dir.substr(0, ps);
+
+            replace(source_path.begin(), source_path.end(), '\\', '/');
+			return source_path;
+        };
+
+        auto source_dir = get_source_dir(bin_dir);
+
+        auto asset_dir = source_dir + "Helios/engine/asset/";
+    }
     OpenGL_RHI::~OpenGL_RHI()
     {
 
@@ -46,7 +65,7 @@ namespace Helios
             LOG_ERROR("Create info has no data!");
             return nullptr;
         }
-        
+
         GLenum buffer_type = GL_ARRAY_BUFFER;
         if(flag == RHI_Usage_Flag::index_buffer)
         buffer_type = GL_ELEMENT_ARRAY_BUFFER;
@@ -54,7 +73,7 @@ namespace Helios
         auto& data_array = buffer_create_info.data_array;
 
         std::shared_ptr<OpenGL_Buffer> buffer = std::make_shared<OpenGL_Buffer>(buffer_type, flag, size, data_array);
-        
+
         return buffer;
     }
 
@@ -66,13 +85,13 @@ namespace Helios
 
     auto OpenGL_RHI::create_shader(const std::string& path) -> std::shared_ptr<RHI_Shader>
     {
-        std::shared_ptr<RHI_Shader> shader = std::make_shared<OpenGL_Shader>("C:/Users/30931/Desktop/Helios/Helios/engine/asset/" + path);
+        std::shared_ptr<RHI_Shader> shader = std::make_shared<OpenGL_Shader>(asset_dir + path);
         return shader;
-    } 
+    }
 
      auto OpenGL_RHI::create_texture(const std::string& path) -> std::shared_ptr<RHI_Texture>
     {
-        std::shared_ptr<RHI_Texture> texture = std::make_shared<OpenGL_Texture>("C:/Users/30931/Desktop/Helios/Helios/engine/asset/" + path);
+        std::shared_ptr<RHI_Texture> texture = std::make_shared<OpenGL_Texture>(asset_dir + path);
         return texture;
-    } 
+    }
 }
