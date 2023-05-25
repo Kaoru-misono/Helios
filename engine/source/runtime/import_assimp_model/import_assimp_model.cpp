@@ -98,7 +98,7 @@ namespace Helios
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            LOG_ERROR("ASSIMP::", importer.GetErrorString());
+            LOG_ERROR("ASSIMP:: {0}", importer.GetErrorString());
         }
 
         auto copy_into_shape_if_exists = [] (auto mesh, auto& shape) {
