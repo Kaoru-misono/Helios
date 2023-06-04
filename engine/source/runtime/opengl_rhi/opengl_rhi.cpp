@@ -4,6 +4,8 @@
 #include "opengl_vertex_array.hpp"
 #include "opengl_shader.hpp"
 #include "opengl_texture.hpp"
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <fstream>
 #include <filesystem>
 
@@ -40,7 +42,7 @@ namespace Helios
         window_ = window->get_window();
     }
 
-    auto OpenGL_RHI::create_device_context() -> void
+    auto OpenGL_RHI::create_platform_context() -> void
     {
         glfwMakeContextCurrent(window_);
 
@@ -55,6 +57,13 @@ namespace Helios
 		LOG_INFO("GPU : {0}", glGetString(GL_RENDERER));
 		LOG_INFO("Version : {0}", glGetString(GL_VERSION));
 
+    }
+
+    auto OpenGL_RHI::init_imgui_for_platform() -> void
+    {
+        // Setup Platform/Renderer backends
+		ImGui_ImplGlfw_InitForOpenGL(window_, true);
+		ImGui_ImplOpenGL3_Init("#version 460");	
     }
 
     auto OpenGL_RHI::create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag, uint32_t size, uint32_t stride) -> std::shared_ptr<RHI_Buffer>

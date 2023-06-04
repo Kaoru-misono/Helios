@@ -7,6 +7,7 @@
 #include "global_context/global_context.hpp"
 #include "logger/logger.hpp"
 #include "rhi/rhi.hpp"
+#include "imgui_layer/imgui_layer.hpp"
 
 namespace Helios
 {
@@ -23,5 +24,6 @@ namespace Helios
 	private:
 	Global_Context& context = g_global_context;
 	std::shared_ptr<RHI> m_rhi;
+	std::shared_ptr<ImGui_Layer> m_imgui_layer;
 	};
 }

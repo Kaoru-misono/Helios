@@ -37,41 +37,15 @@ namespace Helios
 	auto Helios_Engine::run() -> void
 	{
 		context.start_context();
+
 		m_rhi = std::make_shared<OpenGL_RHI>();
 		m_rhi->init(context.m_window);
-		m_rhi->create_context();
+		m_rhi->create_platform_context();
 		LOG_INFO("Welcome to Helios !");
+		m_rhi->init_imgui_for_platform();
 
-		{
-			// Setup Dear ImGui context
-			IMGUI_CHECKVERSION();
-			ImGui::CreateContext();
-			ImGuiIO& io = ImGui::GetIO(); (void)io;
-			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-			//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-			io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-			//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-			//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-
-			// Setup Dear ImGui style
-			ImGui::StyleColorsDark();
-			//ImGui::StyleColorsClassic();
-
-			// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-			ImGuiStyle& style = ImGui::GetStyle();
-			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-			{
-				style.WindowRounding = 0.0f;
-				style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-			}
-
-			GLFWwindow* window = static_cast<GLFWwindow*>(context.m_window->get_window());
-
-			// Setup Platform/Renderer backends
-			ImGui_ImplGlfw_InitForOpenGL(window, true);
-			ImGui_ImplOpenGL3_Init("#version 460");
-		}
+		
+		
 
 		std::shared_ptr<RHI_Vertex_Array> vertex_array = m_rhi->create_vertex_array();
 
@@ -128,8 +102,6 @@ namespace Helios
 
 
 
-
-
 		while (!context.m_window->should_close())
 		{
 			renderer_tick();
@@ -138,44 +110,26 @@ namespace Helios
 
 	auto Helios_Engine::shutdown() -> void
 	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
 		context.shutdown_context();
 	}
 
 	auto Helios_Engine::renderer_tick() -> void
 	{
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		context.m_imgui_layer->update();
 		static glm::vec4 clear_color = glm::vec4(0.8f, 0.5f, 0.3f, 1.0f);
+		
 		ImGui::Begin("Settings");
-		ImGui::ColorEdit3("Flat Color", glm::value_ptr(clear_color));
-
+		ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
 		ImGui::End();
+
 		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 		glClear(GL_COLOR_BUFFER_BIT);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		
-		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2((float)context.m_window->get_width(), (float)context.m_window->get_height());
+		LOG_INFO("width:{0}, height:{1}", context.m_window->get_width(), context.m_window->get_height());
 
-		//Rendering
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-
-		}
-
+		context.m_imgui_layer->render();
 		context.m_window->swap_buffers();
 		context.m_window->poll_events();
 
