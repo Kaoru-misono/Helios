@@ -12,7 +12,7 @@ namespace Helios
     public:
         virtual ~OpenGL_RHI() override final;
         auto init(std::shared_ptr<Window>& window) -> void override final;
-        auto create_context() -> void override final;
+        auto create_device_context() -> void override final;
 
         auto create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag, uint32_t size = 0, uint32_t stride = 0) -> std::shared_ptr<RHI_Buffer> override;
         auto create_vertex_array() -> std::shared_ptr<RHI_Vertex_Array> override;

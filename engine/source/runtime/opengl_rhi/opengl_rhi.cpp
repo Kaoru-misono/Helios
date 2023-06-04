@@ -40,7 +40,7 @@ namespace Helios
         window_ = window->get_window();
     }
 
-    auto OpenGL_RHI::create_context() -> void
+    auto OpenGL_RHI::create_device_context() -> void
     {
         glfwMakeContextCurrent(window_);
 
