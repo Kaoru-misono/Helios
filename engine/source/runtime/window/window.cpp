@@ -25,7 +25,7 @@ namespace Helios
         m_title = info.title;
 	    
         
-        m_window = glfwCreateWindow(m_width, m_height, m_title, nullptr, nullptr);
+        m_window = glfwCreateWindow(m_width, m_height, m_title.c_str(), nullptr, nullptr);
 
         if (m_window == nullptr)
 	    {
@@ -33,6 +33,18 @@ namespace Helios
 	    	glfwTerminate();
 	    	return;
 	    }
+
+        // Setup input callbacks
+        glfwSetWindowUserPointer(m_window, this); //window access the GLFWwindow m_Window
+        glfwSetKeyCallback(m_window, key_callback);
+        glfwSetCharCallback(m_window, char_callback);
+        glfwSetCharModsCallback(m_window, char_mods_callback);
+        glfwSetMouseButtonCallback(m_window, mouse_button_callback);
+        glfwSetCursorPosCallback(m_window, cursor_pos_callback);
+        glfwSetCursorEnterCallback(m_window, cursor_enter_callback);
+        glfwSetScrollCallback(m_window, scroll_callback);
+        glfwSetWindowSizeCallback(m_window, window_size_callback);
+        glfwSetWindowCloseCallback(m_window, window_close_callback);
     }
     
     auto Window::should_close() -> bool
