@@ -17,7 +17,7 @@
 #include "type.hpp"
 #include "utility.hpp"
 
-namespace Helios
+namespace Helios::core
 {
     template <class T>
     struct Span;
