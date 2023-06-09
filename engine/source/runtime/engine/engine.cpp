@@ -44,8 +44,8 @@ namespace Helios
 		LOG_INFO("Welcome to Helios !");
 		m_rhi->init_imgui_for_platform();
 
-		
-		
+
+
 
 		std::shared_ptr<RHI_Vertex_Array> vertex_array = m_rhi->create_vertex_array();
 
@@ -64,7 +64,7 @@ namespace Helios
 			2, 3, 1
 		};
 		Assimp_Config config;
-		Assimp_Model marry = Assimp_Model::load_model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Marry.obj", config);
+		//Assimp_Model marry = Assimp_Model::load_model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Marry.obj", config);
 		//Model marry = Model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Alisya/pink.pmx");
 		//LOG_INFO("mesh: {0}, {1}", marry.meshes.size(), marry.meshes.size());
 
@@ -94,11 +94,11 @@ namespace Helios
 		pass->add_fragment_shader(fragment_shader);
 		pass->link_shader();
 
-		Scene::Camera camera;
-		camera.set_camera_properties(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f));
 
-		pass->set_uniform("view_matrix", camera.get_view_matrix());
-		pass->set_uniform("projection_matrix", camera.get_projection_matrix());
+		context.m_main_camera->set_camera_properties(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f));
+
+		pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+		pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
 
 
 
@@ -117,7 +117,7 @@ namespace Helios
 	{
 		context.m_imgui_layer->update();
 		static glm::vec4 clear_color = glm::vec4(0.8f, 0.5f, 0.3f, 1.0f);
-		
+
 		ImGui::Begin("Settings");
 		ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
 		ImGui::End();
@@ -133,6 +133,6 @@ namespace Helios
 		context.m_window->swap_buffers();
 		context.m_window->poll_events();
 
-		
+
 	}
 }

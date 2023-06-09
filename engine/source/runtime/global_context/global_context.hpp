@@ -1,8 +1,11 @@
 #pragma once
 #include <memory>
 #include <string>
+#include "render/camera.hpp"
 namespace Helios
 {
+    using namespace Scene;
+
     class Logger;
     class Window;
     class ImGui_Layer;
@@ -17,6 +20,7 @@ namespace Helios
         std::shared_ptr<Logger> m_logger;
         std::shared_ptr<Window> m_window;
         std::shared_ptr<ImGui_Layer> m_imgui_layer;
+        std::shared_ptr<Camera> m_main_camera;
     };
 
     extern Global_Context g_global_context;

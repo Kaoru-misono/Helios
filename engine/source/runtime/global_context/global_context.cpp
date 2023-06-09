@@ -2,6 +2,7 @@
 #include "logger/logger.hpp"
 #include "window/window.hpp"
 #include "imgui_layer/imgui_layer.hpp"
+#include "render/camera.hpp"
 
 namespace Helios
 {
@@ -17,12 +18,14 @@ namespace Helios
 
         m_imgui_layer = std::make_shared<ImGui_Layer>();
         m_imgui_layer->init();
+
+        m_main_camera = std::make_shared<Camera>();
     }
 
     auto Global_Context::shutdown_context() -> void
     {
         m_logger.reset();
-        
+
         m_window.reset();
 
         m_imgui_layer->destroy();
