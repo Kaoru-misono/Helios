@@ -1,5 +1,6 @@
 #include "camera.hpp"
 #include <algorithm>
+#include "logger/logger_marco.hpp"
 
 namespace Helios::Scene
 {
@@ -10,30 +11,31 @@ namespace Helios::Scene
 
     auto Camera::move(glm::vec3 delta) -> void
     {
-
+        position_ += delta;
     }
 
     auto Camera::rotate(glm::vec2 delta) -> void
     {
-        // rotation around x, y axis
-//         delta = glm::vec2(glm::radians(delta.x), glm::radians(delta.y));
-//
-//         // limit pitch
-//         float dot = glm::dot(up_vector, );
-//         if ((dot < -0.99f && delta.x > 0.0f) || // angle nearing 180 degrees
-//             (dot > 0.99f && delta.x < 0.0f))    // angle nearing 0 degrees
-//             delta.x = 0.0f;
-//
-//         // pitch is relative to current sideways rotation
-//         // yaw happens independently
-//         // this prevents roll
-//         glm::quat pitch, yaw;
-//         pitch = glm::quat(delta.x, glm::vec3(1.0f, 0.0f, 0.0f));
-//         yaw = glm::quat(delta.y, glm::vec3(0.0f, 1.0f, 0.0f));
-//
-//         rotation_ = pitch * rotation_ * yaw;
-//
-//         inv_rotation_ = glm::conjugate(rotation_);
+        //need a slower speed
+        delta *= 0.005f;
+
+        // limit pitch
+        float dot = glm::dot(up_vector, forward());
+        if ((dot < -0.99f && delta.x > 0.0f) || // angle nearing 180 degrees
+            (dot > 0.99f && delta.x < 0.0f))    // angle nearing 0 degrees
+            delta.x = 0.0f;
+
+
+        // pitch is relative to current sideways rotation
+        // yaw happens independently
+        // this prevents roll
+        glm::quat pitch, yaw;
+        pitch = glm::angleAxis(delta.x, positive_x);
+        yaw = glm::angleAxis(delta.y, positive_y);
+
+        rotation_ = pitch * rotation_ * yaw;
+
+        inv_rotation_ = glm::conjugate(rotation_);
     }
 
     auto Camera::zoom(float offset) -> void
@@ -59,8 +61,7 @@ namespace Helios::Scene
         glm::quat up_rotation = glm::qua(rotation_ * orth_up, positive_y);
         rotation_ = up_rotation * rotation_;
 
-        // inverse of the model rotation
-        // maps camera space vectors to model vectors
+        // actually we rotate model, so we need a rotation inverse
         inv_rotation_ = glm::conjugate(rotation_);
     }
 
@@ -75,7 +76,8 @@ namespace Helios::Scene
 
     auto Camera::get_view_matrix() -> glm::mat4
     {
-        view_matrix = glm::lookAt(position_, position_ + inv_rotation_ * negative_z, inv_rotation_ * positive_y);
+        view_matrix = glm::lookAt(position_, position_ + forward(), up());
+
         return view_matrix;
     }
 

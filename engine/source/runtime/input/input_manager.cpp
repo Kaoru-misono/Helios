@@ -36,16 +36,16 @@ namespace Helios
     {
         float           camera_speed  = m_camera_speed;
         std::shared_ptr<Scene::Camera> camera = g_global_context.m_main_camera;
-        glm::quat camera_rotate = glm::inverse(camera->rotation());
+        glm::mat3 camera_rotate = glm::inverse(camera->rotation());
         glm::vec3 camera_relative_pos(0, 0, 0);
 
         if ((unsigned int)Control_Command::camera_foward & m_process_command)
         {
-            camera_relative_pos += camera_rotate * glm::vec3 {0, camera_speed, 0};
+            camera_relative_pos += camera_rotate * glm::vec3 {0, 0, -camera_speed};
         }
         if ((unsigned int)Control_Command::camera_back & m_process_command)
         {
-            camera_relative_pos += camera_rotate * glm::vec3 {0, -camera_speed, 0};
+            camera_relative_pos += camera_rotate * glm::vec3 {0, 0, camera_speed};
         }
         if ((unsigned int)Control_Command::camera_left & m_process_command)
         {
@@ -57,11 +57,11 @@ namespace Helios
         }
         if ((unsigned int)Control_Command::camera_up & m_process_command)
         {
-            camera_relative_pos += glm::vec3 {0, 0, camera_speed};
+            camera_relative_pos += glm::vec3 {0, camera_speed, 0};
         }
         if ((unsigned int)Control_Command::camera_down & m_process_command)
         {
-            camera_relative_pos += glm::vec3 {0, 0, -camera_speed};
+            camera_relative_pos += glm::vec3 {0, -camera_speed, 0};
         }
 
         camera->move(camera_relative_pos);
@@ -133,17 +133,47 @@ namespace Helios
 
     auto Input_Manager::onCursorPos(double xpos, double ypos) -> void
     {
+        float angularVelocity =180.0f / 1600.f; // 180 degrees while moving full screen
+        if (g_global_context.m_window->isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
+        {
+            glfwSetInputMode(g_global_context.m_window->get_window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            g_global_context.m_main_camera->rotate(glm::vec2(ypos - m_mouse_y, xpos - m_mouse_x) * angularVelocity);
+        }
+        else
+        {
+            glfwSetInputMode(g_global_context.m_window->get_window(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
 
+        m_mouse_x = xpos;
+        m_mouse_y = ypos;
     }
 
     auto Input_Manager::onCursorEnter(int entered) -> void
     {
-
+        if (!entered) // lost focus
+        {
+            m_mouse_x = m_mouse_y = -1.0f;
+        }
     }
 
     auto Input_Manager::onScroll(double xoffset, double yoffset) -> void
     {
-
+        if (g_global_context.m_window->isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
+            {
+                if (yoffset > 0)
+                {
+                    m_camera_speed *= 1.2f;
+                }
+                else
+                {
+                    m_camera_speed *= 0.8f;
+                }
+            }
+            else
+            {
+                g_global_context.m_main_camera->zoom(
+                    (float)yoffset * 2.0f); // wheel scrolled up = zoom in by 2 extra degrees
+            }
     }
 
     auto Input_Manager::onMouseButtonClicked(int key, int action) -> void
@@ -153,6 +183,6 @@ namespace Helios
 
     auto Input_Manager::onWindowClosed() -> void
     {
-
+        glfwSetWindowShouldClose(g_global_context.m_window->get_window(), true);
     }
 }

@@ -90,14 +90,14 @@ namespace Helios
         if(!value.has_value())
         return;
 
-        auto idx = uniforms.find(name);
-        if (idx != uniforms.end())
-        {
-            LOG_WARN("Uniform:[ {0} ]has exists!", name);
-            return;
-        }
-        else
-            uniforms.emplace(name);
+        //auto idx = uniforms.find(name);
+        // if (idx != uniforms.end())
+        // {
+        //     LOG_WARN("Uniform:[ {0} ]has exists!", name);
+        //     return;
+        // }
+        // else
+        //    uniforms.emplace(name);
 
         bind(); // bind before you set uniform
 

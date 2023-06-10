@@ -8,6 +8,8 @@
 #include "logger/logger.hpp"
 #include "rhi/rhi.hpp"
 #include "imgui_layer/imgui_layer.hpp"
+#include "input/input_manager.hpp"
+
 
 namespace Helios
 {
@@ -25,5 +27,7 @@ namespace Helios
 	Global_Context& context = g_global_context;
 	std::shared_ptr<RHI> m_rhi;
 	std::shared_ptr<ImGui_Layer> m_imgui_layer;
+	std::shared_ptr<Input_Manager> m_input_manager;
+	std::shared_ptr<RHI_GPU_Program> m_pass;
 	};
 }

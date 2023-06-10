@@ -44,7 +44,8 @@ namespace Helios
 		LOG_INFO("Welcome to Helios !");
 		m_rhi->init_imgui_for_platform();
 
-
+		m_input_manager = std::make_shared<Input_Manager>();
+		m_input_manager->initialize();
 
 
 		std::shared_ptr<RHI_Vertex_Array> vertex_array = m_rhi->create_vertex_array();
@@ -89,16 +90,15 @@ namespace Helios
 		std::shared_ptr<RHI_Texture> leidian = m_rhi->create_texture( "texture/leidian.jpg" );
 
 		leidian->set_texture_unit(0);
-		std::shared_ptr<RHI_GPU_Program> pass = std::make_shared<OpenGL_GPU_Program>();
-		pass->add_vertex_shader(vertex_shader);
-		pass->add_fragment_shader(fragment_shader);
-		pass->link_shader();
+		m_pass = std::make_shared<OpenGL_GPU_Program>();
+		m_pass->add_vertex_shader(vertex_shader);
+		m_pass->add_fragment_shader(fragment_shader);
+		m_pass->link_shader();
 
 
 		context.m_main_camera->set_camera_properties(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f));
 
-		pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-		pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+
 
 
 
@@ -115,11 +115,16 @@ namespace Helios
 
 	auto Helios_Engine::renderer_tick() -> void
 	{
+		m_input_manager->process_control_command();
 		context.m_imgui_layer->update();
+
 		static glm::vec4 clear_color = glm::vec4(0.8f, 0.5f, 0.3f, 1.0f);
+		static glm::vec3 model_pos = glm::vec3(0.0f);
+		glm::mat4 model_mat = glm::translate(glm::mat4(1.0f), model_pos);
 
 		ImGui::Begin("Settings");
 		ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
+		ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.1f);
 		ImGui::End();
 
 		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
@@ -127,7 +132,9 @@ namespace Helios
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		LOG_INFO("width:{0}, height:{1}", context.m_window->get_width(), context.m_window->get_height());
+		m_pass->set_uniform("model_matrix", model_mat);
+		m_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+		m_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
 
 		context.m_imgui_layer->render();
 		context.m_window->swap_buffers();

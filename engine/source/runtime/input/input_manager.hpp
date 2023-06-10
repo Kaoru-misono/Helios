@@ -32,7 +32,7 @@ namespace Helios
         auto onWindowClosed() -> void;
 
     private:
-        glm::vec2 m_engine_window_size {1280.0f, 768.0f};
+        glm::vec2 m_engine_window_size {1280.0f, 900.0f};
         float   m_mouse_x {0.0f};
         float   m_mouse_y {0.0f};
         float   m_camera_speed {0.05f};
