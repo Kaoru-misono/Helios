@@ -96,7 +96,7 @@ namespace Helios
 		m_pass->link_shader();
 
 
-		context.m_main_camera->set_camera_properties(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f));
+		context.m_main_camera->set_camera_properties(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 
 
@@ -124,7 +124,7 @@ namespace Helios
 
 		ImGui::Begin("Settings");
 		ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
-		ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.1f);
+		ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
 		ImGui::End();
 
 		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);

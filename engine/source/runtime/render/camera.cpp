@@ -50,7 +50,7 @@ namespace Helios::Scene
         up_vector = up;
         glm::vec3 forward = glm::normalize(target - position_);
         // think about forward axis and negative_z will coincide after view transform
-        rotation_ = glm::qua(forward, negative_z);
+        rotation_ = glm::rotation(forward, negative_z);
 
         glm::vec3 right = glm::cross(forward, up_vector);
         glm::normalize(right);
@@ -58,10 +58,12 @@ namespace Helios::Scene
         glm::vec3 orth_up = glm::cross(right, forward);
         glm::normalize(orth_up);
 
-        glm::quat up_rotation = glm::qua(rotation_ * orth_up, positive_y);
+        glm::quat up_rotation = glm::rotation(rotation_ * orth_up, positive_y);
+
+        //"rotation_" records rotation from current camera coordinate system to right hand camera coordinate system
         rotation_ = up_rotation * rotation_;
 
-        // actually we rotate model, so we need a rotation inverse
+        //we need this rotation to get current camera coordinate system by right hand camera coordinate system
         inv_rotation_ = glm::conjugate(rotation_);
     }
 
