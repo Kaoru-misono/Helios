@@ -2,6 +2,7 @@
 #include "global_context/global_context.hpp"
 #include "window/window.hpp"
 #include "render/camera.hpp"
+#include "logger/logger_marco.hpp"
 #include <glm/gtc/quaternion.hpp>
 #include <functional>
 
@@ -36,33 +37,36 @@ namespace Helios
     {
         float           camera_speed  = m_camera_speed;
         std::shared_ptr<Scene::Camera> camera = g_global_context.m_main_camera;
-        glm::mat3 camera_rotate = glm::inverse(camera->rotation());
         glm::vec3 camera_relative_pos(0, 0, 0);
 
         if ((unsigned int)Control_Command::camera_foward & m_process_command)
         {
-            camera_relative_pos += camera_rotate * glm::vec3 {0, 0, -camera_speed};
+            camera_relative_pos += camera->forward() * camera_speed;
         }
         if ((unsigned int)Control_Command::camera_back & m_process_command)
         {
-            camera_relative_pos += camera_rotate * glm::vec3 {0, 0, camera_speed};
+            camera_relative_pos -= camera->forward() * camera_speed;
         }
         if ((unsigned int)Control_Command::camera_left & m_process_command)
         {
-            camera_relative_pos += camera_rotate * glm::vec3 {-camera_speed, 0, 0};
+            camera_relative_pos -= camera->right() * camera_speed;
         }
         if ((unsigned int)Control_Command::camera_right & m_process_command)
         {
-            camera_relative_pos += camera_rotate * glm::vec3 {camera_speed, 0, 0};
+            camera_relative_pos += camera->right() * camera_speed;
         }
         if ((unsigned int)Control_Command::camera_up & m_process_command)
         {
-            camera_relative_pos += glm::vec3 {0, camera_speed, 0};
+            camera_relative_pos += camera->up() * camera_speed;
         }
         if ((unsigned int)Control_Command::camera_down & m_process_command)
         {
-            camera_relative_pos += glm::vec3 {0, -camera_speed, 0};
+            camera_relative_pos -= camera->up() * camera_speed;
         }
+
+        //TODO: remove this
+        if ((unsigned int)Control_Command::exit & m_process_command)
+        glfwSetWindowShouldClose(g_global_context.m_window->get_window(), true);
 
         camera->move(camera_relative_pos);
     }
@@ -73,6 +77,9 @@ namespace Helios
         {
             switch (key)
             {
+                case GLFW_KEY_SPACE:
+                    m_process_command |= (unsigned int)Control_Command::exit;
+                    break;
                 case GLFW_KEY_A:
                     m_process_command |= (unsigned int)Control_Command::camera_left;
                     break;
@@ -133,11 +140,13 @@ namespace Helios
 
     auto Input_Manager::onCursorPos(double xpos, double ypos) -> void
     {
+        //LOG_INFO("mouse position: {0}, {1}", xpos, ypos);
         float angularVelocity =180.0f / 1600.f; // 180 degrees while moving full screen
         if (g_global_context.m_window->isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
         {
             glfwSetInputMode(g_global_context.m_window->get_window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            g_global_context.m_main_camera->rotate(glm::vec2(ypos - m_mouse_y, xpos - m_mouse_x) * angularVelocity);
+            //ypos decrease when mouse up
+            g_global_context.m_main_camera->rotate(glm::vec2(xpos - m_mouse_x, ypos - m_mouse_y) * angularVelocity);
         }
         else
         {
@@ -183,6 +192,6 @@ namespace Helios
 
     auto Input_Manager::onWindowClosed() -> void
     {
-        glfwSetWindowShouldClose(g_global_context.m_window->get_window(), true);
+
     }
 }

@@ -16,44 +16,55 @@ namespace Helios::Scene
         Camera();
         ~Camera() = default;
 
-        glm::mat4 view_matrix{ 1.0 };
+        auto update() -> void;
 
+        //camera controll
         auto move(glm::vec3 delta) -> void;
         auto rotate(glm::vec2 delta) -> void;
         auto zoom(float offset) -> void;
-        auto look_at(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up) -> void;
 
-        glm::vec3 position() const { return position_; }
-        glm::mat3 rotation() const { return glm::toMat3(rotation_); }
+        auto get_position()const -> glm::vec3 { return eye_position_; }
+        //auto rotation()const -> glm::mat3 { return glm::toMat3(rotation_); }
 
-        glm::vec3 forward() const { return inv_rotation_ * negative_z; }
-        glm::vec3 right() const { return inv_rotation_ * positive_x; }
-        glm::vec3 up() const { return inv_rotation_ * positive_y; }
+        auto forward() const -> glm::vec3 { return glm::normalize(-*reinterpret_cast<const glm::vec3 *>(&inv_view_matrix_[2])); }
+        auto right()   const -> glm::vec3 { return glm::normalize( *reinterpret_cast<const glm::vec3 *>(&inv_view_matrix_[0])); }
+        auto up()      const -> glm::vec3 { return glm::normalize( *reinterpret_cast<const glm::vec3 *>(&inv_view_matrix_[1])); }
 
-        auto set_camera_properties(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f)) -> void;
+        auto set_camera_parameters(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f)) -> void;
         auto set_fov(float fov) -> void { fov_ = fov; }
         auto set_aspect(float aspect) -> void { aspect_ = aspect; }
-        auto set_near_far_plane(float near, float far) -> void { near_plane = near; far_plane = far; }
+        auto set_near_far_plane(float near, float far) -> void { near_plane_ = near; far_plane_ = far; }
 
-        auto get_view_matrix() -> glm::mat4;
-        auto get_projection_matrix()const  -> glm::mat4;
-    protected:
+        auto get_view_matrix()const -> glm::mat4 { return view_matrix_; }
+        auto get_inv_view_matrix()const -> glm::mat4 { return inv_view_matrix_; }
+        auto get_projection_matrix()const  -> glm::mat4 { return proj_matrix_; }
+    private:
+        auto calculate_view_martix() -> void;
+        auto calculate_proj_matrix() -> void;
+    private:
+
         float fov_{45.0f};
         float aspect_{ 4.0f/3.0f };
+        float near_plane_{ 0.1f };
+        float far_plane_{ 1000.0f };
 
-        glm::vec3 position_{0.0f, 0.0f, 0.0f};
-        // rotation can rotate the camera axis to coincide with the world axis
-        glm::quat rotation_;
-        // view martix does the opposite operation of the camera for all models, so we need inverse rotation
-        glm::quat inv_rotation_;
+        glm::vec3 eye_position_{ 0.0f };
+        glm::vec3 look_dir_{ 0.0f };
+        glm::mat4 view_matrix_{ 1.0 };
+        glm::mat4 inv_view_matrix_{ 1.0f };
+        glm::mat4 proj_matrix_{ 1.0f };
 
-        float near_plane{ 0.1f };
-        float far_plane{ 1000.0f };
-        glm::vec3 up_vector{ 0.0f, 1.0f, 0.0f };
+        glm::vec3 up_{ 0.0f, 1.0f, 0.0f };
 
-        //OpenGL Camera look at negative z
-        const glm::vec3 negative_z{ 0.0f, 0.0f, -1.0f };
-        const glm::vec3 positive_y{ 0.0f, 1.0f,  0.0f };
-        const glm::vec3 positive_x{ 1.0f, 0.0f,  0.0f };
+        bool need_update_matrix_{ false };
+
+        //OpenGL normalized right hand camera coordinate system, OpenGL Camera look at negative z
+        static const glm::vec3 negative_z;
+        static const glm::vec3 positive_y;
+        static const glm::vec3 positive_x;
     };
+
+    inline const glm::vec3 Camera::negative_z{ 0.0f, 0.0f, -1.0f };
+    inline const glm::vec3 Camera::positive_y{ 0.0f, 1.0f,  0.0f };
+    inline const glm::vec3 Camera::positive_x{ 1.0f, 0.0f,  0.0f };
 }

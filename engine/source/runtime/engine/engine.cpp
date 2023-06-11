@@ -96,7 +96,7 @@ namespace Helios
 		m_pass->link_shader();
 
 
-		context.m_main_camera->set_camera_properties(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		context.m_main_camera->set_camera_parameters(glm::vec3(5.0f, 5.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 
 
@@ -132,6 +132,7 @@ namespace Helios
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+		context.m_main_camera->update();
 		m_pass->set_uniform("model_matrix", model_mat);
 		m_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
 		m_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
