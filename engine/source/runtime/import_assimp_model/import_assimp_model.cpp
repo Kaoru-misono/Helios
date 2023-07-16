@@ -130,9 +130,7 @@ namespace Helios
             copy_if_exists(mesh->mTangents, shape.tangent);
             copy_if_exists(mesh->mBitangents, shape.bitangent);
             copy_if_exists_to_2d(mesh->mTextureCoords[0], shape.texcoord);
-            copy_if_exists_to_2d(mesh->mTextureCoords[1], shape.texcoord2);
             copy_if_exists(mesh->mColors[0], shape.color);
-            copy_if_exists(mesh->mColors[1], shape.color2);
         };
 
         auto load_textures = [&] (Assimp_Model& model) {
@@ -168,8 +166,6 @@ namespace Helios
 
                 mat->Get(AI_MATKEY_SHININESS, result.shininess);
                 mat->Get(AI_MATKEY_OPACITY, result.opacity);
-                mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, result.glTF_PBR_metallic_roughness_roughness_factor);
-                mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, result.glTF_PBR_metallic_roughness_metallic_factor);
 
                 for (auto tex_type_assimp_tex_type: tex_type_to_assimp) {
                     auto tex_type = tex_type_assimp_tex_type.first;
@@ -262,8 +258,7 @@ namespace Helios
                 };
 
                 copy_if_exists_to_triangle(mesh->mFaces, result.topology);
-                copy_into_shape_if_exists(mesh, result.main_shape);
-                copy_if_exists_to_shape_keys(mesh->mAnimMeshes, result.shape_keys);
+                copy_into_shape_if_exists(mesh, result.vertex_info);
 
                 model.meshes.emplace_back(std::move(result));
             }
@@ -315,6 +310,7 @@ namespace Helios
             //for bones and animation
             auto node_addr_to_idx = load_hierarchy(result);
         }
+        LOG_INFO("Model_Info: mesh[{0}], node[{1}], material[{2}], texture[{3}]", result.meshes.size(), result.nodes.size(), result.materials.size(), result.textures.size());
 
         return result;
     }

@@ -38,6 +38,7 @@ namespace Helios::Scene
         auto get_view_matrix()const -> glm::mat4 { return view_matrix_; }
         auto get_inv_view_matrix()const -> glm::mat4 { return inv_view_matrix_; }
         auto get_projection_matrix()const  -> glm::mat4 { return proj_matrix_; }
+        
     private:
         auto calculate_view_martix() -> void;
         auto calculate_proj_matrix() -> void;

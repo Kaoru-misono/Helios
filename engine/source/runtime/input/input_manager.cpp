@@ -68,6 +68,7 @@ namespace Helios
         if ((unsigned int)Control_Command::exit & m_process_command)
         glfwSetWindowShouldClose(g_global_context.m_window->get_window(), true);
 
+        if(camera_relative_pos != glm::vec3(0.0f))
         camera->move(camera_relative_pos);
     }
 

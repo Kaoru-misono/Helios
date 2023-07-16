@@ -106,45 +106,21 @@ namespace Helios
                 std::uint32_t c{};
             };
 
-            struct Shape final
+            struct Vertex_info final
             {
                 std::vector<glm::vec3> position;
                 std::vector<glm::vec3> normal;
                 std::vector<glm::vec3> tangent;
                 std::vector<glm::vec3> bitangent;
                 std::vector<glm::vec2> texcoord;
-                std::vector<glm::vec2> texcoord2;
                 std::vector<glm::vec4> color;
-                std::vector<glm::vec4> color2;
-            };
-
-            struct Shape_Key final
-            {
-                float default_weight{};
-                Shape shape;
-                std::string name;
-            };
-
-            struct Vertex_Weight final
-            {
-                Array_Index vertex{-1}; // index for Shape::position array
-                float weight{};
-            };
-
-            struct Bone final
-            {
-                Array_Index driver{-1}; // index for nodes array
-                glm::mat4 transformation{};
-                std::vector<Vertex_Weight> weights;
             };
 
             Array_Index parent{-1};     // index for nodes array
             Array_Index material{-1};   // index for materials array
 
             std::vector<Triangle> topology;
-            Shape main_shape;
-            std::vector<Shape_Key> shape_keys;
-            std::vector<Bone> bones;
+            Vertex_info vertex_info;
             std::string name;
         };
 
@@ -158,9 +134,7 @@ namespace Helios
 
             float shininess{};
             float opacity{};
-            float glTF_PBR_metallic_roughness_roughness_factor{};
-            float glTF_PBR_metallic_roughness_metallic_factor{};
-
+            
             std::unordered_map<Texture_Type, std::string> texture_paths;
 
             std::string name;
@@ -168,7 +142,6 @@ namespace Helios
 
         static auto load_model(std::string const& path, Assimp_Config config) -> Assimp_Model;
     
-    private:
         std::vector<Node> nodes;        // guaranteed to be in level-order
         std::vector<Mesh> meshes;
         std::vector<Material> materials;
