@@ -6,6 +6,8 @@
 
 namespace Helios
 {
+    using namespace rhi;
+
     class OpenGL_Texture : public RHI_Texture
     {
     public:

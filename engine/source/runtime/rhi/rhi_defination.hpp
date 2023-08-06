@@ -11,7 +11,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
-namespace Helios
+namespace Helios::rhi
 {
     struct Data_Array;
     struct RHI_Buffer;
@@ -78,6 +78,7 @@ namespace Helios
 
     struct RHI_Vertex_Array
     {
+        //TODO: subdata specifier
         virtual ~RHI_Vertex_Array() {}
         virtual auto bind() -> void = 0;
         virtual auto set_attributes(Vertex_Array_Specifier& specifier) -> void = 0;  
@@ -136,5 +137,31 @@ namespace Helios
     {
         virtual ~RHI_Texture() {}
         virtual auto set_texture_unit(unsigned int texture_unit) -> void = 0;
+    };
+
+    enum struct Primitive : uint16_t
+    {
+        none,
+        points,
+        lines,
+        line_strip,
+        line_loop,
+        trianges,
+        triangle_strip,
+    };
+
+    struct RHI_Draw_Command
+    {
+        Primitive primitive;
+    };
+
+    struct RHI_Pass
+    {
+
+    };
+
+    struct RHI_Render_Queqe
+    {
+
     };
 }

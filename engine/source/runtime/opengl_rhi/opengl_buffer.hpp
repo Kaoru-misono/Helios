@@ -4,6 +4,8 @@
 
 namespace Helios
 {
+    using namespace rhi;
+
     class OpenGL_Buffer : public RHI_Buffer
     {
     public:

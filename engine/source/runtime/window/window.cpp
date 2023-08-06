@@ -51,6 +51,11 @@ namespace Helios
     {
         return glfwWindowShouldClose(m_window);
     }
+
+    auto Window::close_window() -> void
+    {
+        glfwSetWindowShouldClose(m_window, true);
+    }
     
     auto Window::get_window() -> GLFWwindow*
     {

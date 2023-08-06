@@ -13,6 +13,7 @@
 
 namespace Helios
 {
+	using namespace rhi;
 	class Helios_Engine
 	{
 	public:

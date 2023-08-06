@@ -8,6 +8,8 @@
 
 namespace Helios
 {
+    using namespace rhi;
+
     class OpenGL_GPU_Program : public RHI_GPU_Program
     {
     public:

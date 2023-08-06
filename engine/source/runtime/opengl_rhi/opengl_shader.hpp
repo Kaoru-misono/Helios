@@ -5,6 +5,8 @@
 
 namespace Helios
 {
+    using namespace rhi;
+    
     class OpenGL_Shader : public RHI_Shader
     {
     public:

@@ -5,6 +5,8 @@
 
 namespace Helios
 {
+    using namespace rhi;
+
     class OpenGL_Vertex_Array : public RHI_Vertex_Array
     {
     public:

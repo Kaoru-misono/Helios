@@ -7,6 +7,7 @@
 
 namespace Helios
 {
+    using namespace rhi;
     class OpenGL_RHI final : public RHI
     {
     public:

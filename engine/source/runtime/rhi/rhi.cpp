@@ -1,5 +1,5 @@
 #include "rhi.hpp"
-namespace Helios
+namespace Helios::rhi
 {
 
 }

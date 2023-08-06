@@ -66,7 +66,7 @@ namespace Helios
 
         //TODO: remove this
         if ((unsigned int)Control_Command::exit & m_process_command)
-        glfwSetWindowShouldClose(g_global_context.m_window->get_window(), true);
+        g_global_context.m_window->close_window();
 
         if(camera_relative_pos != glm::vec3(0.0f))
         camera->move(camera_relative_pos);
@@ -78,7 +78,7 @@ namespace Helios
         {
             switch (key)
             {
-                case GLFW_KEY_SPACE:
+                case GLFW_KEY_ESCAPE:
                     m_process_command |= (unsigned int)Control_Command::exit;
                     break;
                 case GLFW_KEY_A:

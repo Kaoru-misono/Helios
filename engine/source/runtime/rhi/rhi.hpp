@@ -2,7 +2,7 @@
 #include <memory>
 #include "window/window.hpp"
 #include "rhi/rhi_defination.hpp"
-namespace Helios
+namespace Helios::rhi
 {
     class RHI
     {
