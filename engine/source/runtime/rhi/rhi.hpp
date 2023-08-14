@@ -10,7 +10,7 @@ namespace Helios::rhi
         RHI() = default;
         //you must define Destructor here instead of pure function, otherwise you will get link error
         virtual ~RHI() {}; 
-        virtual auto init(std::shared_ptr<Window>& window) -> void = 0;
+        virtual auto init(Window& window) -> void = 0;
         virtual auto create_platform_context() -> void = 0;
         virtual auto init_imgui_for_platform() -> void = 0;
         virtual auto create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag, uint32_t size, uint32_t stride) -> std::shared_ptr<RHI_Buffer> = 0;

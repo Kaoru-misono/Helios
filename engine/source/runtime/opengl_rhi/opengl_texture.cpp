@@ -17,7 +17,7 @@ namespace Helios
         glDeleteTextures(1, &resource);
     }
 
-    auto OpenGL_Texture::set_texture_unit(unsigned int texture_unit) -> void
+    auto OpenGL_Texture::set_texture_sampler(unsigned int texture_unit) -> void
     {
         texture_unit_ = texture_unit;
         glBindTextureUnit(texture_unit, resource);

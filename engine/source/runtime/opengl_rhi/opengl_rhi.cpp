@@ -35,12 +35,12 @@ namespace Helios
 
     }
 
-    auto OpenGL_RHI::init(std::shared_ptr<Window>& window) -> void
+    auto OpenGL_RHI::init(Window& window) -> void
     {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        window_ = window->get_window();
+        window_ = window.get_window();
     }
 
     auto OpenGL_RHI::create_platform_context() -> void

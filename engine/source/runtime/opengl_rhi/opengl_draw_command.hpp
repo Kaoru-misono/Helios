@@ -13,10 +13,6 @@ namespace Helios
 
     struct OpenGL_Draw_Command final : RHI_Draw_Command
     {
-        OpenGL_Vertex_Array vertex_array;
-        OpenGL_Buffer vertex_buffer;
-        std::optional<OpenGL_Buffer> index_buffer;
-        std::unordered_map<std::string, std::any> uniform;
-        std::unordered_map<std::string, std::any> sampler;
+        
     };
 }

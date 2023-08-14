@@ -12,7 +12,7 @@ namespace Helios
     {
     public:
         virtual ~OpenGL_RHI() override final;
-        auto init(std::shared_ptr<Window>& window) -> void override final;
+        auto init(Window& window) -> void override final;
         auto create_platform_context() -> void override final;
         auto init_imgui_for_platform() -> void override final;
 

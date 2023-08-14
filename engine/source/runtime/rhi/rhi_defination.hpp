@@ -8,6 +8,7 @@
 #include <optional>
 #include <iostream>
 #include <any>
+#include <unordered_map>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
@@ -136,7 +137,7 @@ namespace Helios::rhi
     struct RHI_Texture : RHI_Resource
     {
         virtual ~RHI_Texture() {}
-        virtual auto set_texture_unit(unsigned int texture_unit) -> void = 0;
+        virtual auto set_texture_sampler(unsigned int texture_unit) -> void = 0;
     };
 
     enum struct Primitive : uint16_t
@@ -152,16 +153,31 @@ namespace Helios::rhi
 
     struct RHI_Draw_Command
     {
+        virtual ~RHI_Draw_Command() {}
         Primitive primitive;
+        std::shared_ptr<RHI_Vertex_Array> vertex_array;
+        //std::shared_ptr<RHI_Buffer> vertex_buffer;
+        //std::optional<RHI_Buffer> index_buffer;
+        std::unordered_map<std::string, std::any> uniform;
+        std::unordered_map<std::string, std::any> sampler;
+    };
+
+    struct RHI_Render_Queue
+    {
+        std::vector<RHI_Draw_Command> draw_commands;
     };
 
     struct RHI_Pass
     {
+        virtual ~RHI_Pass() {}
+        virtual auto shader_process() -> void = 0;
+        virtual auto update() -> void = 0;
+        virtual auto render() -> void = 0;
 
-    };
-
-    struct RHI_Render_Queqe
-    {
-
+        std::vector<RHI_Draw_Command> draw_commands;
+        std::unordered_map<std::string, std::any> uniforms;
+        std::unique_ptr<RHI_GPU_Program> gpu_program;
+        std::shared_ptr<RHI_Shader> vertex_shader;
+        std::shared_ptr<RHI_Shader> fragment_shader;
     };
 }

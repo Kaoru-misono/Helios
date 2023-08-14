@@ -21,7 +21,7 @@ namespace Helios
         OpenGL_Texture(const std::string& path);
         ~OpenGL_Texture() override;
 
-        auto set_texture_unit(unsigned int texture_unit) -> void override;
+        auto set_texture_sampler(unsigned int texture_unit) -> void override;
         auto get_texture_unit() -> unsigned int;
         
         static auto load_texture(const std::string& path) -> Texture_Data;

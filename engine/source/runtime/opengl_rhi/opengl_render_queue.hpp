@@ -5,9 +5,8 @@
 namespace Helios
 {
     using namespace rhi;
-    struct OpenGL_Render_Queue final : RHI_Render_Queqe
+    struct OpenGL_Render_Queue final : RHI_Render_Queue
     {
-        std::vector<OpenGL_Draw_Command> draw_commands;
     };
     
 }
