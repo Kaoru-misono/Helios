@@ -31,7 +31,7 @@ namespace Helios::rhi
         Float4
     };
 
-    struct Vertex_Attribute_Descriptor
+    struct Vertex_Attribute
     {
         std::string element_name{ "" };
         Vertex_Attribute_Type type{ Vertex_Attribute_Type::none };
@@ -61,7 +61,7 @@ namespace Helios::rhi
 
     struct Vertex_Array_Specifier
     {
-        Vertex_Array_Specifier(const std::initializer_list<Vertex_Attribute_Descriptor>& attributes):attributes_(attributes)
+        Vertex_Array_Specifier(const std::initializer_list<Vertex_Attribute>& attributes):attributes_(attributes)
         {
             for(auto& attribute : attributes_)
             {
@@ -71,10 +71,10 @@ namespace Helios::rhi
             }
         }
         
-        std::vector<Vertex_Attribute_Descriptor>::const_iterator begin() { return attributes_.begin(); }
-        std::vector<Vertex_Attribute_Descriptor>::const_iterator end() { return attributes_.end(); }
+        std::vector<Vertex_Attribute>::const_iterator begin() { return attributes_.begin(); }
+        std::vector<Vertex_Attribute>::const_iterator end() { return attributes_.end(); }
         uint32_t stride{ 0 };
-        std::vector<Vertex_Attribute_Descriptor> attributes_;
+        std::vector<Vertex_Attribute> attributes_;
     };
 
     struct RHI_Vertex_Array
@@ -82,7 +82,7 @@ namespace Helios::rhi
         //TODO: subdata specifier
         virtual ~RHI_Vertex_Array() {}
         virtual auto bind() -> void = 0;
-        virtual auto set_attributes(Vertex_Array_Specifier& specifier) -> void = 0;  
+        virtual auto set_attributes(Vertex_Array_Specifier& specifier) -> void = 0;
     };
 
     struct RHI_Buffer
@@ -93,7 +93,7 @@ namespace Helios::rhi
 
     struct RHI_Buffer_Create_info
     {
-        std::shared_ptr<Data_Array> data_array;
+        std::vector<Data_Array> data_array;
     };
 
     enum struct RHI_Usage_Flag : uint32_t

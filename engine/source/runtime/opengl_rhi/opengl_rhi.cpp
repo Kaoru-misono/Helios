@@ -67,9 +67,9 @@ namespace Helios
 		ImGui_ImplOpenGL3_Init("#version 460");	
     }
 
-    auto OpenGL_RHI::create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag, uint32_t size, uint32_t stride) -> std::shared_ptr<RHI_Buffer>
+    auto OpenGL_RHI::create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag) -> std::shared_ptr<RHI_Buffer>
     {
-        if(buffer_create_info.data_array->size == 0)
+        if(buffer_create_info.data_array.empty())
         {
             //TODO: when size == 0, use create_info.data_array.size
             LOG_ERROR("Create info has no data!");
@@ -81,8 +81,23 @@ namespace Helios
         buffer_type = GL_ELEMENT_ARRAY_BUFFER;
 
         auto& data_array = buffer_create_info.data_array;
+        std::shared_ptr<OpenGL_Buffer> buffer;
 
-        std::shared_ptr<OpenGL_Buffer> buffer = std::make_shared<OpenGL_Buffer>(buffer_type, flag, size, data_array);
+        if (data_array.size() == 1) {
+            auto size = data_array[0].size;
+            std::cout << size << std::endl;
+
+            buffer = std::make_shared<OpenGL_Buffer>(buffer_type, flag, size, data_array[0]);
+        }
+        else {
+            auto size = 0;
+            for (auto data: data_array) {
+                size += data.size;
+            }
+            std::cout << size << std::endl;
+            buffer = std::make_shared<OpenGL_Buffer>(buffer_type, flag, size, data_array);
+        }
+        
 
         return buffer;
     }

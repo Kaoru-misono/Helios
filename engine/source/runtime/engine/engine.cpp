@@ -64,24 +64,36 @@ namespace Helios
 
 		auto bunny_vertex_info = bunny.meshes[0].vertex_info;
 		const int num_of_vertex = (int)(bunny_vertex_info.position.size());
-		std::vector<glm::vec3> bunny_vertices;
+		//std::vector<glm::vec3> bunny_vertices;
+		std::vector<float> bunny_vertices, bunny_position, bunny_normal;
 		for (int i = 0; i < num_of_vertex; i++)
 		{
-			bunny_vertices.push_back(bunny_vertex_info.position[i]);
-			bunny_vertices.push_back(bunny_vertex_info.normal[i]);
+			//bunny_vertices.push_back(bunny_vertex_info.position[i]);
+			//bunny_vertices.push_back(bunny_vertex_info.normal[i]);
+			
+			bunny_vertices.emplace_back(bunny_vertex_info.position[i].x);
+			bunny_vertices.emplace_back(bunny_vertex_info.position[i].y);
+			bunny_vertices.emplace_back(bunny_vertex_info.position[i].z);
+			bunny_vertices.emplace_back(bunny_vertex_info.normal[i].x);
+			bunny_vertices.emplace_back(bunny_vertex_info.normal[i].y);
+			bunny_vertices.emplace_back(bunny_vertex_info.normal[i].z);
+			bunny_position.emplace_back(bunny_vertex_info.position[i].x);
+			bunny_position.emplace_back(bunny_vertex_info.position[i].y);
+			bunny_position.emplace_back(bunny_vertex_info.position[i].z);
+			bunny_normal.emplace_back(bunny_vertex_info.normal[i].x);
+			bunny_normal.emplace_back(bunny_vertex_info.normal[i].y);
+			bunny_normal.emplace_back(bunny_vertex_info.normal[i].z);
 		}
+		auto vert = std::span<float>(bunny_vertices);
+		
+		
 
-		float vert[6000 * 3];
-		for(int i = 0; i < bunny_vertices.size(); i++)
-		{
-			vert[i * 3] = bunny_vertices[i].x;
-			vert[i * 3 + 1] = bunny_vertices[i].y;
-			vert[i * 3 + 2] = bunny_vertices[i].z;
-		}
 
 		RHI_Buffer_Create_info bunny_info;
-		bunny_info.data_array = std::make_shared<Data_Array>(sizeof(vert), vert);
-		std::shared_ptr<RHI_Buffer> bunny_vertex_buffer = m_rhi->create_buffer(bunny_info, RHI_Usage_Flag::vertex_buffer, bunny_info.data_array->size, 0);
+
+		bunny_info.data_array.emplace_back(vert.size() * sizeof(float), vert.data());
+
+		std::shared_ptr<RHI_Buffer> bunny_vertex_buffer = m_rhi->create_buffer(bunny_info, RHI_Usage_Flag::vertex_buffer);
 		Vertex_Array_Specifier bunny_specifier{
 			{ "POSITION", Vertex_Attribute_Type::Float3 },
 			{ "NORMAL", 	  Vertex_Attribute_Type::Float3 },
