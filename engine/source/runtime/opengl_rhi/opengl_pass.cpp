@@ -29,6 +29,7 @@ namespace Helios
 
     auto OpenGL_Pass::update() -> void
     {
+        gpu_program->bind();
         for(auto uniform: uniforms)
         {
             gpu_program->set_uniform(uniform.first, uniform.second);

@@ -119,7 +119,7 @@ namespace Helios
                 app->onScroll(xoffset, yoffset);
             }
         }
-        
+
         static void window_size_callback(GLFWwindow* window, int width, int height)
         {
             Window* app = (Window*)glfwGetWindowUserPointer(window);
@@ -178,7 +178,7 @@ namespace Helios
             for (auto& func : m_scroll_func)
                 func(xoffset, yoffset);
         }
-       
+
         void onWindowSize(int width, int height)
         {
             for (auto& func : m_window_size_func)
@@ -201,5 +201,5 @@ namespace Helios
         std::vector<scroll_func>       m_scroll_func;
         std::vector<window_size_func>  m_window_size_func;
         std::vector<window_close_func> m_window_close_func;
-    };    
+    };
 }
