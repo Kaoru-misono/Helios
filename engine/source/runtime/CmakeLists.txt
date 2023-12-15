@@ -8,11 +8,16 @@ file(GLOB_RECURSE SOURCE_FILES "*.cpp")
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${HEADER_FILES} ${SOURCE_FILES})
 
-
-
 # Note: for header-only libraries change all PUBLIC flags to INTERFACE and create an interface
 # target: add_library(${TARGET_NAME} INTERFACE)
 add_library(${TARGET_NAME} ${HEADER_FILES} ${SOURCE_FILES})
+if(MSVC)
+    target_compile_options(${TARGET_NAME}
+        PRIVATE
+            "/wd4996;" # disable "unknown pragma 'mark'" warnings
+    )
+endif()
+target_precompile_headers(${TARGET_NAME} PUBLIC pre-compile.h)
 
 set_target_properties(${TARGET_NAME} PROPERTIES CXX_STANDARD 20)
 set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "Engine")

@@ -9,10 +9,8 @@
 
 namespace Helios
 {
-    using namespace rhi;
-
     struct OpenGL_Draw_Command final : RHI_Draw_Command
     {
-        
+
     };
 }

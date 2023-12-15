@@ -6,8 +6,6 @@
 
 namespace Helios
 {
-    using namespace rhi;
-
     class OpenGL_Texture : public RHI_Texture
     {
     public:
@@ -23,9 +21,9 @@ namespace Helios
 
         auto set_texture_sampler(unsigned int texture_unit) -> void override;
         auto get_texture_unit() -> unsigned int;
-        
+
         static auto load_texture(const std::string& path) -> Texture_Data;
-        
+
         auto create_texture() -> void;
 
     private:

@@ -40,7 +40,9 @@ namespace Helios
     {
         for(auto& cmd: draw_commands)
         {
+            cmd.vertex_array->bind();
             glDrawArrays(GL_TRIANGLES, 0, 3000);
+            glBindVertexArray(0);
         }
     }
 }

@@ -181,9 +181,7 @@ namespace Helios
 			context.m_imgui_layer->update();
 			context.m_main_camera->update();
 			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			bunny_vertex_array->bind();
 			renderer_tick();
-			glBindVertexArray(0);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -228,8 +226,8 @@ namespace Helios
 
 		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, 3000);
-		//test_pass->render();
+		//glDrawArrays(GL_TRIANGLES, 0, 3000);
+		test_pass->render();
 		//glDrawElements(GL_TRIANGLES, 3000, GL_UNSIGNED_INT, 0);
 	}
 }

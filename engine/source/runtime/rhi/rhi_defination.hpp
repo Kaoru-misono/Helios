@@ -1,18 +1,9 @@
 # pragma once
-#include <string>
-#include <stdint.h>
-#include <array>
-#include <unordered_map>
-#include <memory>
-#include <vector>
-#include <optional>
-#include <iostream>
-#include <any>
-#include <unordered_map>
+#include "pre-compile.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
-namespace Helios::rhi
+namespace Helios
 {
     struct Data_Array;
     struct RHI_Buffer;
@@ -70,7 +61,7 @@ namespace Helios::rhi
                 //std::cout << attribute.offset << " stride " << stride << std::endl;
             }
         }
-        
+
         std::vector<Vertex_Attribute>::const_iterator begin() { return attributes_.begin(); }
         std::vector<Vertex_Attribute>::const_iterator end() { return attributes_.end(); }
         uint32_t stride{ 0 };
@@ -85,37 +76,13 @@ namespace Helios::rhi
         virtual auto set_attributes(Vertex_Array_Specifier& specifier) -> void = 0;
     };
 
-    struct RHI_Buffer
-    {
-        virtual ~RHI_Buffer() {}
-        virtual auto bind() -> void = 0;
-    };
-
-    struct RHI_Buffer_Create_info
-    {
-        std::vector<Data_Array> data_array;
-    };
-
-    enum struct RHI_Usage_Flag : uint32_t
-    {
-        vertex_buffer,
-        index_buffer
-    };
-
-    struct Data_Array
-    {
-        Data_Array(size_t in_size, void* array): size(in_size), data(array) {}
-        size_t size{ 0 };
-        void* data{ nullptr };
-    };
-
     enum struct Shader_Type
     {
         VERTEX_SHADER,
         FRAGMENT_SHADER
     };
 
-    struct RHI_Shader : RHI_Resource 
+    struct RHI_Shader : RHI_Resource
     {
         virtual ~RHI_Shader() {}
         virtual auto get_shader_id()const -> unsigned int = 0;
@@ -167,13 +134,23 @@ namespace Helios::rhi
         std::vector<RHI_Draw_Command> draw_commands;
     };
 
+    struct RHI_Framebuffer
+    {
+        struct Attachment
+        {
+            std::unique_ptr<RHI_Texture> texture;
+        };
+        std::vector<Attachment> colors;
+        Attachment depth;
+    };
+
     struct RHI_Pass
     {
         virtual ~RHI_Pass() {}
         virtual auto shader_process() -> void = 0;
         virtual auto update() -> void = 0;
         virtual auto render() -> void = 0;
-
+        RHI_Framebuffer frame_buffer;
         std::vector<RHI_Draw_Command> draw_commands;
         std::unordered_map<std::string, std::any> uniforms;
         std::unique_ptr<RHI_GPU_Program> gpu_program;

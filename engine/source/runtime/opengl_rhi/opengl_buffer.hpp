@@ -1,11 +1,9 @@
 #pragma once
 #include <glad/glad.h>
-#include "rhi/rhi_defination.hpp"
+#include "rhi/buffer.hpp"
 
 namespace Helios
 {
-    using namespace rhi;
-
     class OpenGL_Buffer : public RHI_Buffer
     {
     public:
@@ -15,7 +13,7 @@ namespace Helios
         virtual ~OpenGL_Buffer() override;
         auto create_glbuffer(GLvoid* data) -> void;
         auto create_glbuffer(std::vector<GLvoid*> data) -> void;
-        auto bind() -> void override; 
+        auto bind() -> void override;
     private:
         GLuint resource;
         GLenum type_;

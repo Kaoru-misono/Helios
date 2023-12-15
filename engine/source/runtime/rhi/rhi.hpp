@@ -1,15 +1,16 @@
 #pragma once
 #include <memory>
 #include "window/window.hpp"
+#include "buffer.hpp"
 #include "rhi/rhi_defination.hpp"
-namespace Helios::rhi
+namespace Helios
 {
     class RHI
     {
     public:
         RHI() = default;
         //you must define Destructor here instead of pure function, otherwise you will get link error
-        virtual ~RHI() {}; 
+        virtual ~RHI() {};
         virtual auto init(Window& window) -> void = 0;
         virtual auto create_platform_context() -> void = 0;
         virtual auto init_imgui_for_platform() -> void = 0;
@@ -17,8 +18,8 @@ namespace Helios::rhi
         virtual auto create_vertex_array() -> std::shared_ptr<RHI_Vertex_Array> = 0;
         virtual auto create_shader(const std::string& path) -> std::shared_ptr<RHI_Shader> = 0;
         virtual auto create_texture(const std::string& path) -> std::shared_ptr<RHI_Texture> = 0;
-        //virtual auto 
+        //virtual auto
     private:
     };
-    
+
 }
