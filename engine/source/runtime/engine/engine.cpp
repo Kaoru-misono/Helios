@@ -134,7 +134,7 @@ namespace Helios
 		std::shared_ptr<RHI_Shader> bunny_fragment_shader = m_rhi->create_shader( "shader/bunny_frag.glsl");
 
 		std::shared_ptr<RHI_Shader> quad_vertex_shader = m_rhi->create_shader( "shader/framebuffer-vert.glsl");
-		std::shared_ptr<RHI_Shader> quad_fragment_shader = m_rhi->create_shader( "shader/framebuffer-frag.glsl");
+		std::shared_ptr<RHI_Shader> quad_fragment_shader = m_rhi->create_shader( "shader/post-process/edge-detection-frag.glsl");
 
 		test_pass = std::make_unique<OpenGL_Pass>();
 		test_pass->vertex_shader = bunny_vertex_shader;
@@ -158,6 +158,8 @@ namespace Helios
 		glGenTextures(1, &texColorBuffer);
 		glBindTexture(GL_TEXTURE_2D, texColorBuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1200, 900, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
