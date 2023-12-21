@@ -10,7 +10,7 @@ namespace Helios
 {
     struct OpenGL_Pass final : RHI_Pass
     {
-        OpenGL_Pass() { gpu_program = std::make_unique<OpenGL_GPU_Program>(); }
+        OpenGL_Pass(std::string&& name) { this->name = name; gpu_program = std::make_unique<OpenGL_GPU_Program>(); }
         OpenGL_Pass(std::shared_ptr<OpenGL_Shader>& vert_shader, std::shared_ptr<OpenGL_Shader>& frag_shader);
 
         auto shader_process() -> void override;

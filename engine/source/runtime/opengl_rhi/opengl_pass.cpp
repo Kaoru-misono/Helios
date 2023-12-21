@@ -18,10 +18,10 @@ namespace Helios
     {
         if(vertex_shader == nullptr || fragment_shader == nullptr)
         {
-            LOG_INFO("[ERROR]: You need to set vertex shader or fragment shader!");
+            LOG_INFO("[ERROR]:{0}-> You need to set vertex shader or fragment shader!", name);
             return;
         }
-        //gpu_program->bind();
+        gpu_program->bind();
         gpu_program->add_vertex_shader(vertex_shader);
         gpu_program->add_fragment_shader(fragment_shader);
         gpu_program->link_shader();
