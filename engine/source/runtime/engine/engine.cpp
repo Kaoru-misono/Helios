@@ -116,7 +116,7 @@ namespace Helios
 
 
 		Assimp_Config config;
-		Assimp_Model bunny = Assimp_Model::load_model("C:/Users/02/Desktop/Helios/Helios/engine/asset/model/bunny_1k.obj", config);
+		Assimp_Model bunny = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/bunny_1k.obj", config);
 		//Assimp_Model marry = Model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Alisya/pink.pmx");
 
 		auto bunny_vertex_info = bunny.meshes[0].vertex_info;
@@ -204,11 +204,8 @@ namespace Helios
 		frame_buffer_pass->uniforms["screenTexture"] = 0;
 
 		auto skybox_pass = std::make_unique<OpenGL_Pass>("skybox_pass");
-		std::shared_ptr<RHI_Shader> skybox_vertex_shader = m_rhi->create_shader( "shader/skybox-vert.glsl");
-		std::shared_ptr<RHI_Shader> skybox_fragment_shader = m_rhi->create_shader( "shader/skybox-frag.glsl");
-
-		skybox_pass->vertex_shader = skybox_vertex_shader;
-		skybox_pass->fragment_shader = skybox_fragment_shader;
+		skybox_pass->vertex_shader = m_rhi->create_shader( "shader/skybox-vert.glsl");
+		skybox_pass->fragment_shader = m_rhi->create_shader( "shader/skybox-frag.glsl");
 		skybox_pass->shader_process();
 		skybox_pass->uniforms["skybox"] = 0;
 
@@ -220,7 +217,7 @@ namespace Helios
 		unsigned int texColorBuffer;
 		glGenTextures(1, &texColorBuffer);
 		glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1200, 900, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, context.m_window->get_width(), context.m_window->get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -231,7 +228,7 @@ namespace Helios
 		unsigned int rbo;
 		glGenRenderbuffers(1, &rbo);
 		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1200, 900);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, context.m_window->get_width(), context.m_window->get_height());
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
@@ -273,12 +270,12 @@ namespace Helios
 
 		vector<std::string> faces
 		{
-			"C:/Users/02/Desktop/Helios/Helios/engine/asset/texture/sky-box/right.jpg",
-			"C:/Users/02/Desktop/Helios/Helios/engine/asset/texture/sky-box/left.jpg",
-			"C:/Users/02/Desktop/Helios/Helios/engine/asset/texture/sky-box/top.jpg",
-			"C:/Users/02/Desktop/Helios/Helios/engine/asset/texture/sky-box/bottom.jpg",
-			"C:/Users/02/Desktop/Helios/Helios/engine/asset/texture/sky-box/front.jpg",
-			"C:/Users/02/Desktop/Helios/Helios/engine/asset/texture/sky-box/back.jpg"
+			"D:/github/Helios/engine/asset/texture/sky-box/right.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/left.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/top.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/bottom.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/front.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/back.jpg"
 		};
 		unsigned int cubemapTexture = loadCubemap(faces);
 
@@ -287,17 +284,17 @@ namespace Helios
 			m_input_manager->process_control_command();
 			context.m_imgui_layer->update();
 			context.m_main_camera->update();
-			//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			//glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			renderer_tick();
 			// draw skybox as last
 			glEnable(GL_DEPTH_TEST);
 
         	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 			skybox_pass->gpu_program->bind();
-			skybox_pass->uniforms["view_matrix"] = glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix()));
-			skybox_pass->uniforms["projection_matrix"] = context.m_main_camera->get_projection_matrix();
+			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
+			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
 			skybox_pass->update();
         	// skybox cube
         	glBindVertexArray(skyboxVAO);
@@ -306,15 +303,15 @@ namespace Helios
         	glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
         	glDepthFunc(GL_LESS);
-			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-			//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			//glClear(GL_COLOR_BUFFER_BIT);
-			//frame_buffer_pass->gpu_program->bind();
-			//glBindVertexArray(quadVAO);
-			//glDisable(GL_DEPTH_TEST);
-			//glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-			//glDrawArrays(GL_TRIANGLES, 0, 6);
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			frame_buffer_pass->gpu_program->bind();
+			glBindVertexArray(quadVAO);
+			glDisable(GL_DEPTH_TEST);
+			glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 
 			context.m_imgui_layer->render();
 			context.m_window->swap_buffers();
@@ -342,9 +339,9 @@ namespace Helios
 		ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
 		ImGui::End();
 
-		test_pass->uniforms["model_matrix"] = model_mat;
-		test_pass->uniforms["view_matrix"] = context.m_main_camera->get_view_matrix();
-		test_pass->uniforms["projection_matrix"] = context.m_main_camera->get_projection_matrix();
+		test_pass->set_uniform("model_matrix", model_mat);
+		test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+		test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
 
 		test_pass->update();
 

@@ -16,8 +16,7 @@ namespace Helios
 
     auto OpenGL_Pass::shader_process() -> void
     {
-        if(vertex_shader == nullptr || fragment_shader == nullptr)
-        {
+        if(vertex_shader == nullptr || fragment_shader == nullptr) {
             LOG_INFO("[ERROR]:{0}-> You need to set vertex shader or fragment shader!", name);
             return;
         }
@@ -27,19 +26,24 @@ namespace Helios
         gpu_program->link_shader();
     }
 
+    auto OpenGL_Pass::set_uniform(std::string name, std::any uniform) -> void
+    {
+        uniforms[name] = uniform;
+        gpu_program->set_uniform(name, uniform);
+    }
+
     auto OpenGL_Pass::update() -> void
     {
-        gpu_program->bind();
-        for(auto uniform: uniforms)
-        {
-            gpu_program->set_uniform(uniform.first, uniform.second);
+        if (enable_depth_test) {
+            glEnable(GL_DEPTH_TEST);
+        } else {
+            glDisable(GL_DEPTH_TEST);
         }
     }
 
     auto OpenGL_Pass::render() -> void
     {
-        for(auto& cmd: draw_commands)
-        {
+        for(auto& cmd: draw_commands) {
             cmd.vertex_array->bind();
             glDrawArrays(GL_TRIANGLES, 0, 3000);
             glBindVertexArray(0);

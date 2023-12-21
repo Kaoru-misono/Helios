@@ -146,10 +146,20 @@ namespace Helios
 
     struct RHI_Pass
     {
+        enum struct Depth_Function
+        {
+            less,
+            equal,
+            less_equal,
+        };
         virtual ~RHI_Pass() {}
         virtual auto shader_process() -> void = 0;
         virtual auto update() -> void = 0;
         virtual auto render() -> void = 0;
+        virtual auto set_uniform(std::string name, std::any uniform) -> void = 0;
+        bool enable_depth_test{true};
+        bool enable_depth_write{false};
+        Depth_Function depth_func;
         RHI_Framebuffer frame_buffer;
         std::vector<RHI_Draw_Command> draw_commands;
         std::unordered_map<std::string, std::any> uniforms;

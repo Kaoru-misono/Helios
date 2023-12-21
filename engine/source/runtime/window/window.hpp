@@ -129,6 +129,12 @@ namespace Helios
                 app->m_height = height;
             }
         }
+
+        static auto framebuffer_size_callback(GLFWwindow* window, int width, int height)
+        {
+             glViewport(0, 0, width, height);
+        }
+
         static void window_close_callback(GLFWwindow* window) { glfwSetWindowShouldClose(window, true); }
 
         void onReset()

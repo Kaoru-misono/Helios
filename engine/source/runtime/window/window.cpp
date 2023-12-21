@@ -44,6 +44,7 @@ namespace Helios
         glfwSetCursorEnterCallback(m_window, cursor_enter_callback);
         glfwSetScrollCallback(m_window, scroll_callback);
         glfwSetWindowSizeCallback(m_window, window_size_callback);
+        glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
         glfwSetWindowCloseCallback(m_window, window_close_callback);
     }
     
