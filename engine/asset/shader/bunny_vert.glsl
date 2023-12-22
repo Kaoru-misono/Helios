@@ -17,7 +17,7 @@ uniform vec3 random_vec;
 void main()
 {
 	v_Position = a_Position;
-	v_Normal = a_Normal;
+	v_Normal = mat3(transpose(inverse(model_matrix))) * a_Normal;
 	v_Color = vec3(normalize(a_Position.x), normalize(a_Position.y), normalize(a_Position.z));
 	gl_Position = projection_matrix * view_matrix * model_matrix * vec4(a_Position, 1.0);
 }

@@ -39,6 +39,17 @@ namespace Helios
         } else {
             glDisable(GL_DEPTH_TEST);
         }
+        if (clear_state.allow_clear) {
+            auto const color = clear_state.clear_color_value;
+            glClearColor(color.x, color.y, color.z, color.w);
+            auto color_buffer_bit = clear_state.clear_color ? GL_COLOR_BUFFER_BIT : GL_FALSE;
+            auto depth_buffer_bit = clear_state.clear_depth ? GL_DEPTH_BUFFER_BIT : GL_FALSE;
+            auto stencil_buffer_bit = clear_state.clear_stencil ? GL_STENCIL_BUFFER_BIT : GL_FALSE;
+            auto result = color_buffer_bit | depth_buffer_bit | stencil_buffer_bit;
+            if (result)
+                glClear(result);
+        }
+
     }
 
     auto OpenGL_Pass::render() -> void

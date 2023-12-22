@@ -19,6 +19,7 @@
 #include "opengl_rhi/opengl_gpu_program.hpp"
 #include "opengl_rhi/opengl_pass.hpp"
 #include "opengl_rhi/opengl_draw_command.hpp"
+#include "opengl_rhi/opengl_framebuffer.hpp"
 #include "render/camera.hpp"
 
 #include <assimp/Importer.hpp>
@@ -142,9 +143,7 @@ namespace Helios
 			bunny_normal.emplace_back(bunny_vertex_info.normal[i].z);
 		}
 		auto vert = std::span<float>(bunny_vertices);
-
-
-
+		auto bunny_position_1 = std::span<glm::vec3>(bunny_vertex_info.position);
 
 		RHI_Buffer_Create_info bunny_info;
 
@@ -185,21 +184,16 @@ namespace Helios
 		// index_info.data_array = std::make_shared<Data_Array>(sizeof(indices), indices);
 		// std::shared_ptr<RHI_Buffer> index_buffer = m_rhi->create_buffer(index_info, RHI_Usage_Flag::index_buffer, index_info.data_array->size, 0);
 
-		std::shared_ptr<RHI_Shader> bunny_vertex_shader = m_rhi->create_shader( "shader/bunny_vert.glsl");
-		std::shared_ptr<RHI_Shader> bunny_fragment_shader = m_rhi->create_shader( "shader/bunny_frag.glsl");
-
-		std::shared_ptr<RHI_Shader> quad_vertex_shader = m_rhi->create_shader( "shader/framebuffer-vert.glsl");
-		std::shared_ptr<RHI_Shader> quad_fragment_shader = m_rhi->create_shader( "shader/framebuffer-frag.glsl");
-
 		test_pass = std::make_unique<OpenGL_Pass>("test_pass");
-		test_pass->vertex_shader = bunny_vertex_shader;
-		test_pass->fragment_shader = bunny_fragment_shader;
+		test_pass->vertex_shader = m_rhi->create_shader( "shader/bunny_vert.glsl");
+		test_pass->fragment_shader = m_rhi->create_shader( "shader/bunny_frag.glsl");
 		test_pass->shader_process();
 		test_pass->draw_commands.push_back(draw_command);
+		test_pass->uniforms["skybox"] = 0;
 
 		frame_buffer_pass = std::make_unique<OpenGL_Pass>("framebuffer_pass");
-		frame_buffer_pass->vertex_shader = quad_vertex_shader;
-		frame_buffer_pass->fragment_shader = quad_fragment_shader;
+		frame_buffer_pass->vertex_shader = m_rhi->create_shader( "shader/framebuffer-vert.glsl");
+		frame_buffer_pass->fragment_shader = m_rhi->create_shader( "shader/framebuffer-frag.glsl");
 		frame_buffer_pass->shader_process();
 		frame_buffer_pass->uniforms["screenTexture"] = 0;
 
@@ -210,31 +204,7 @@ namespace Helios
 		skybox_pass->uniforms["skybox"] = 0;
 
 		context.m_main_camera->set_camera_parameters(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-		unsigned int framebuffer;
-		glGenFramebuffers(1, &framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-		unsigned int texColorBuffer;
-		glGenTextures(1, &texColorBuffer);
-		glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, context.m_window->get_width(), context.m_window->get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
-
-		unsigned int rbo;
-		glGenRenderbuffers(1, &rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, context.m_window->get_width(), context.m_window->get_height());
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    		LOG_ERROR("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		auto framebuffer = std::make_unique<OpenGL_Framebuffer>(glm::vec2{context.m_window->get_width(), context.m_window->get_height()});
 
 		auto loadCubemap = [](std::vector<std::string> faces) -> unsigned int
 		{
@@ -284,9 +254,9 @@ namespace Helios
 			m_input_manager->process_control_command();
 			context.m_imgui_layer->update();
 			context.m_main_camera->update();
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			framebuffer->bind();
+			glActiveTexture(GL_TEXTURE0);
+        	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 			renderer_tick();
 			// draw skybox as last
 			glEnable(GL_DEPTH_TEST);
@@ -295,6 +265,7 @@ namespace Helios
 			skybox_pass->gpu_program->bind();
 			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
 			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+			skybox_pass->clear_state.allow_clear = false;
 			skybox_pass->update();
         	// skybox cube
         	glBindVertexArray(skyboxVAO);
@@ -303,22 +274,20 @@ namespace Helios
         	glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
         	glDepthFunc(GL_LESS);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			framebuffer->unbind();
 
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
+			frame_buffer_pass->clear_state.clear_color = true;
+			frame_buffer_pass->clear_state.clear_depth = false;
 			frame_buffer_pass->gpu_program->bind();
 			glBindVertexArray(quadVAO);
 			glDisable(GL_DEPTH_TEST);
-			glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+			glBindTexture(GL_TEXTURE_2D, framebuffer->texColorBuffer);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 
 			context.m_imgui_layer->render();
 			context.m_window->swap_buffers();
 			context.m_window->poll_events();
 		}
-
-		glDeleteFramebuffers(1, & framebuffer);
 	}
 
 	auto Helios_Engine::shutdown() -> void
@@ -339,14 +308,14 @@ namespace Helios
 		ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
 		ImGui::End();
 
+		test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
 		test_pass->set_uniform("model_matrix", model_mat);
 		test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
 		test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-
+		test_pass->clear_state.clear_color = true;
+		test_pass->clear_state.clear_color_value = clear_color;
+		test_pass->clear_state.clear_depth = true;
 		test_pass->update();
-
-		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//glDrawArrays(GL_TRIANGLES, 0, 3000);
 		test_pass->render();
 		//glDrawElements(GL_TRIANGLES, 3000, GL_UNSIGNED_INT, 0);

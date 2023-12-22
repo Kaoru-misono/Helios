@@ -23,9 +23,9 @@ namespace Helios
         glBindTextureUnit(texture_unit, resource);
     }
 
-    auto OpenGL_Texture::load_texture(const std::string& path) -> Texture_Data
+    auto OpenGL_Texture::load_texture(const std::string& path) -> Image
     {
-        Texture_Data texture_data;
+        Image texture_data;
         stbi_set_flip_vertically_on_load(1);
 
         texture_data.data = stbi_load(path.c_str(), &texture_data.width, &texture_data.height, &texture_data.nrComponents, 0);
@@ -67,7 +67,7 @@ namespace Helios
     }
 
 
-    auto OpenGL_Texture::get_texture_unit() -> unsigned int 
+    auto OpenGL_Texture::get_texture_unit() -> unsigned int
     {
         return texture_unit_;
     }

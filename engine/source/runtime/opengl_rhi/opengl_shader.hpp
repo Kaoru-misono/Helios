@@ -9,7 +9,7 @@ namespace Helios
     {
     public:
         OpenGL_Shader(const std::string& in_path);
-        virtual ~OpenGL_Shader() override;
+        ~OpenGL_Shader() override;
 
         auto get_shader_id()const -> unsigned int override;
         auto get_shader_source()const -> std::string override;

@@ -7,6 +7,7 @@
 #include "global_context/global_context.hpp"
 #include "logger/logger.hpp"
 #include "rhi/rhi.hpp"
+#include "rhi/pass.hpp"
 #include "imgui_layer/imgui_layer.hpp"
 #include "input/input_manager.hpp"
 
@@ -30,7 +31,7 @@ namespace Helios
 	std::shared_ptr<Input_Manager> m_input_manager;
 	std::shared_ptr<RHI_GPU_Program> m_pass;
 	std::shared_ptr<RHI_GPU_Program> m_bunny_pass;
-	std::unique_ptr<RHI_Pass> test_pass;
-	std::unique_ptr<RHI_Pass> frame_buffer_pass;
+	std::unique_ptr<RHI_Pass> test_pass{nullptr};
+	std::unique_ptr<RHI_Pass> frame_buffer_pass{nullptr};
 	};
 }

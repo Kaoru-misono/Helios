@@ -1,5 +1,6 @@
 #pragma once
 #include "rhi/rhi_defination.hpp"
+#include "rhi/pass.hpp"
 #include "opengl_render_queue.hpp"
 #include "opengl_gpu_program.hpp"
 #include "opengl_shader.hpp"
