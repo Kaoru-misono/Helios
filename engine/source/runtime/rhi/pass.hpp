@@ -1,11 +1,12 @@
 #pragma once
 #include "rhi/rhi_defination.hpp"
+#include "draw_command.hpp"
 #include "render_state.hpp"
 #include "../pre-compile.h"
 
 namespace Helios
 {
-    struct RHI_Pass
+    struct Pass
     {
         enum struct Depth_Function
         {
@@ -13,7 +14,7 @@ namespace Helios
             equal,
             less_equal,
         };
-        virtual ~RHI_Pass() {}
+        virtual ~Pass() {}
         virtual auto shader_process() -> void = 0;
         virtual auto update() -> void = 0;
         virtual auto render() -> void = 0;

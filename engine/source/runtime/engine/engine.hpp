@@ -31,7 +31,7 @@ namespace Helios
 	std::shared_ptr<Input_Manager> m_input_manager;
 	std::shared_ptr<RHI_GPU_Program> m_pass;
 	std::shared_ptr<RHI_GPU_Program> m_bunny_pass;
-	std::unique_ptr<RHI_Pass> test_pass{nullptr};
-	std::unique_ptr<RHI_Pass> frame_buffer_pass{nullptr};
+	std::unique_ptr<Pass> test_pass{nullptr};
+	std::unique_ptr<Pass> frame_buffer_pass{nullptr};
 	};
 }

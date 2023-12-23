@@ -3,6 +3,7 @@
 #include "window/window.hpp"
 #include "buffer.hpp"
 #include "rhi/rhi_defination.hpp"
+#include "rhi/vertex_array_spcifier.hpp"
 namespace Helios
 {
     class RHI

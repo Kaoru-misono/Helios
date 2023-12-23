@@ -20,7 +20,7 @@ namespace Helios
         glBindVertexArray(resource);
     }
 
-    auto  OpenGL_Vertex_Array::set_attributes(Vertex_Array_Specifier& specifier) -> void
+    auto  OpenGL_Vertex_Array::add_attributes(Vertex_Array_Specifier& specifier) -> void
     {
         bind();
         auto& attributes = specifier.attributes_;

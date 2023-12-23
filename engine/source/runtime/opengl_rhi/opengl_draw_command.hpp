@@ -1,5 +1,5 @@
 #pragma once
-#include "rhi/rhi_defination.hpp"
+#include "rhi/draw_command.hpp"
 #include "opengl_vertex_array.hpp"
 #include "opengl_buffer.hpp"
 #include <optional>

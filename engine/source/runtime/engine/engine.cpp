@@ -113,7 +113,6 @@ namespace Helios
 		};
 
 		std::shared_ptr<RHI_Vertex_Array> bunny_vertex_array = m_rhi->create_vertex_array();
-		std::shared_ptr<RHI_Vertex_Array> quad_vertex_array = m_rhi->create_vertex_array();
 
 
 		Assimp_Config config;
@@ -143,8 +142,20 @@ namespace Helios
 			bunny_normal.emplace_back(bunny_vertex_info.normal[i].z);
 		}
 		auto vert = std::span<float>(bunny_vertices);
-		auto bunny_position_1 = std::span<glm::vec3>(bunny_vertex_info.position);
-
+		auto bunny_position_1 = std::span<float>(bunny_position);
+		auto bunny_normal_1 = std::span<float>(bunny_normal);
+		unsigned int bunny_VAO, bunny_VBO;
+    	glGenVertexArrays(1, &bunny_VAO);
+		glGenBuffers(1, &bunny_VBO);
+		glBindVertexArray(bunny_VAO);
+    	glBindBuffer(GL_ARRAY_BUFFER, bunny_VBO);
+		glBufferData(GL_ARRAY_BUFFER, bunny_position_1.size_bytes() + bunny_normal_1.size_bytes(), nullptr, GL_STATIC_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, bunny_position_1.size_bytes(), bunny_position_1.data());
+		glBufferSubData(GL_ARRAY_BUFFER, bunny_position_1.size_bytes(), bunny_normal_1.size_bytes(), bunny_normal_1.data());
+    	glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+    	glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(bunny_position_1.size_bytes())); 
 		RHI_Buffer_Create_info bunny_info;
 
 		bunny_info.data_array.emplace_back(vert.size() * sizeof(float), vert.data());
@@ -154,7 +165,7 @@ namespace Helios
 			{ "POSITION", Vertex_Attribute_Type::Float3 },
 			{ "NORMAL", 	  Vertex_Attribute_Type::Float3 },
 		};
-		bunny_vertex_array->set_attributes(bunny_specifier);
+		bunny_vertex_array->add_attributes(bunny_specifier);
 
 		auto draw_command = RHI_Draw_Command();
 		draw_command.vertex_array = bunny_vertex_array;
@@ -258,6 +269,27 @@ namespace Helios
 			glActiveTexture(GL_TEXTURE0);
         	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 			renderer_tick();
+			glEnable(GL_DEPTH_TEST);
+
+			static glm::vec4 clear_color = glm::vec4(0.8f, 0.5f, 0.3f, 1.0f);
+			static glm::vec3 model_pos = glm::vec3(0.0f);
+			glm::mat4 model_mat = glm::translate(glm::mat4(1.0f), model_pos);
+
+			ImGui::Begin("Settings");
+			ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
+			ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
+			ImGui::End();
+
+			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
+			test_pass->set_uniform("model_matrix", model_mat);
+			test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+			test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+			test_pass->clear_state.clear_color = true;
+			test_pass->clear_state.clear_color_value = clear_color;
+			test_pass->clear_state.clear_depth = true;
+			test_pass->update();
+			glBindVertexArray(bunny_VAO);
+			glDrawArrays(GL_TRIANGLES, 0, 3000);
 			// draw skybox as last
 			glEnable(GL_DEPTH_TEST);
 
@@ -297,27 +329,8 @@ namespace Helios
 
 	auto Helios_Engine::renderer_tick() -> void
 	{
-		glEnable(GL_DEPTH_TEST);
-
-		static glm::vec4 clear_color = glm::vec4(0.8f, 0.5f, 0.3f, 1.0f);
-		static glm::vec3 model_pos = glm::vec3(0.0f);
-		glm::mat4 model_mat = glm::translate(glm::mat4(1.0f), model_pos);
-
-		ImGui::Begin("Settings");
-		ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
-		ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
-		ImGui::End();
-
-		test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
-		test_pass->set_uniform("model_matrix", model_mat);
-		test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-		test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-		test_pass->clear_state.clear_color = true;
-		test_pass->clear_state.clear_color_value = clear_color;
-		test_pass->clear_state.clear_depth = true;
-		test_pass->update();
-		//glDrawArrays(GL_TRIANGLES, 0, 3000);
-		test_pass->render();
+		
+		//test_pass->render();
 		//glDrawElements(GL_TRIANGLES, 3000, GL_UNSIGNED_INT, 0);
 	}
 }
