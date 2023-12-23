@@ -85,7 +85,7 @@ namespace Helios
 
         if (data_array.size() == 1) {
             auto size = data_array[0].size;
-            std::cout << size << std::endl;
+            //std::cout << size << std::endl;
 
             buffer = std::make_shared<OpenGL_Buffer>(buffer_type, flag, size, data_array[0]);
         }
@@ -94,7 +94,7 @@ namespace Helios
             for (auto data: data_array) {
                 size += data.size;
             }
-            std::cout << size << std::endl;
+            //std::cout << size << std::endl;
             buffer = std::make_shared<OpenGL_Buffer>(buffer_type, flag, size, data_array);
         }
         

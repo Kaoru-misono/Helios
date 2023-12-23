@@ -3,7 +3,7 @@
 #include "rhi_defination.hpp"
 namespace Helios
 {
-        enum struct Vertex_Attribute_Type: int32_t
+    enum struct Vertex_Attribute_Type: int32_t
     {
         none,
         Float,
@@ -15,10 +15,9 @@ namespace Helios
     struct Vertex_Attribute
     {
         std::string element_name{ "" };
-        Vertex_Attribute_Type type{ Vertex_Attribute_Type::none };
-        uint32_t offset{ 0 };
-        uint32_t size{ 0 };
-        std::shared_ptr<RHI_Buffer> buffer_token{ nullptr };
+        unsigned int element_size{};
+        unsigned int buffer_offset{};
+        void* buffer{};
     };
 
     static auto get_size_from_type(Vertex_Attribute_Type& type) -> uint32_t
@@ -40,29 +39,15 @@ namespace Helios
         return 0;
     }
 
-    struct Vertex_Array_Specifier
-    {
-        Vertex_Array_Specifier(const std::initializer_list<Vertex_Attribute>& attributes):attributes_(attributes)
-        {
-            for(auto& attribute : attributes_)
-            {
-                attribute.offset = stride;
-                stride += get_size_from_type(attribute.type);
-                //std::cout << attribute.offset << " stride " << stride << std::endl;
-            }
-        }
-
-        std::vector<Vertex_Attribute>::const_iterator begin() { return attributes_.begin(); }
-        std::vector<Vertex_Attribute>::const_iterator end() { return attributes_.end(); }
-        uint32_t stride{ 0 };
-        std::vector<Vertex_Attribute> attributes_;
-    };
-
     struct RHI_Vertex_Array
     {
         //TODO: subdata specifier
         virtual ~RHI_Vertex_Array() {}
         virtual auto bind() -> void = 0;
-        virtual auto add_attributes(Vertex_Array_Specifier& specifier) -> void = 0;
+        virtual auto add_attributes(Vertex_Attribute&& attribute) -> void = 0;
+        virtual auto create_buffer_and_set_data() -> void = 0;
+        virtual auto set_attributes_pointer() -> void = 0;
+    protected:
+        std::vector<Vertex_Attribute> attributes;
     };
 }

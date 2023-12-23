@@ -112,8 +112,6 @@ namespace Helios
 			1.0f, -1.0f,  1.0f
 		};
 
-		std::shared_ptr<RHI_Vertex_Array> bunny_vertex_array = m_rhi->create_vertex_array();
-
 
 		Assimp_Config config;
 		Assimp_Model bunny = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/bunny_1k.obj", config);
@@ -122,54 +120,13 @@ namespace Helios
 		auto bunny_vertex_info = bunny.meshes[0].vertex_info;
 		const int num_of_vertex = (int)(bunny_vertex_info.position.size());
 		//std::vector<glm::vec3> bunny_vertices;
-		std::vector<float> bunny_vertices, bunny_position, bunny_normal;
-		for (int i = 0; i < num_of_vertex; i++)
-		{
-			//bunny_vertices.push_back(bunny_vertex_info.position[i]);
-			//bunny_vertices.push_back(bunny_vertex_info.normal[i]);
-
-			bunny_vertices.emplace_back(bunny_vertex_info.position[i].x);
-			bunny_vertices.emplace_back(bunny_vertex_info.position[i].y);
-			bunny_vertices.emplace_back(bunny_vertex_info.position[i].z);
-			bunny_vertices.emplace_back(bunny_vertex_info.normal[i].x);
-			bunny_vertices.emplace_back(bunny_vertex_info.normal[i].y);
-			bunny_vertices.emplace_back(bunny_vertex_info.normal[i].z);
-			bunny_position.emplace_back(bunny_vertex_info.position[i].x);
-			bunny_position.emplace_back(bunny_vertex_info.position[i].y);
-			bunny_position.emplace_back(bunny_vertex_info.position[i].z);
-			bunny_normal.emplace_back(bunny_vertex_info.normal[i].x);
-			bunny_normal.emplace_back(bunny_vertex_info.normal[i].y);
-			bunny_normal.emplace_back(bunny_vertex_info.normal[i].z);
-		}
-		auto vert = std::span<float>(bunny_vertices);
-		auto bunny_position_1 = std::span<float>(bunny_position);
-		auto bunny_normal_1 = std::span<float>(bunny_normal);
-		unsigned int bunny_VAO, bunny_VBO;
-    	glGenVertexArrays(1, &bunny_VAO);
-		glGenBuffers(1, &bunny_VBO);
-		glBindVertexArray(bunny_VAO);
-    	glBindBuffer(GL_ARRAY_BUFFER, bunny_VBO);
-		glBufferData(GL_ARRAY_BUFFER, bunny_position_1.size_bytes() + bunny_normal_1.size_bytes(), nullptr, GL_STATIC_DRAW);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, bunny_position_1.size_bytes(), bunny_position_1.data());
-		glBufferSubData(GL_ARRAY_BUFFER, bunny_position_1.size_bytes(), bunny_normal_1.size_bytes(), bunny_normal_1.data());
-    	glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-    	glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(bunny_position_1.size_bytes())); 
-		RHI_Buffer_Create_info bunny_info;
-
-		bunny_info.data_array.emplace_back(vert.size() * sizeof(float), vert.data());
-
-		std::shared_ptr<RHI_Buffer> bunny_vertex_buffer = m_rhi->create_buffer(bunny_info, RHI_Usage_Flag::vertex_buffer);
-		Vertex_Array_Specifier bunny_specifier{
-			{ "POSITION", Vertex_Attribute_Type::Float3 },
-			{ "NORMAL", 	  Vertex_Attribute_Type::Float3 },
-		};
-		bunny_vertex_array->add_attributes(bunny_specifier);
-
-		auto draw_command = RHI_Draw_Command();
-		draw_command.vertex_array = bunny_vertex_array;
-
+		auto bunny_position_1 = std::span<glm::vec3>(bunny_vertex_info.position);
+		auto bunny_normal_1 = std::span<glm::vec3>(bunny_vertex_info.normal);
+		auto bunny_vertex_array = m_rhi->create_vertex_array();
+		bunny_vertex_array->add_attributes({"POSITION", 3, bunny_position_1.size_bytes(), bunny_position_1.data()});
+		bunny_vertex_array->add_attributes({"NORMAL", 3, bunny_normal_1.size_bytes(), bunny_normal_1.data()});
+		bunny_vertex_array->create_buffer_and_set_data();
+		bunny_vertex_array->set_attributes_pointer();
 		// screen quad VAO
     	unsigned int quadVAO, quadVBO;
     	glGenVertexArrays(1, &quadVAO);
@@ -199,7 +156,6 @@ namespace Helios
 		test_pass->vertex_shader = m_rhi->create_shader( "shader/bunny_vert.glsl");
 		test_pass->fragment_shader = m_rhi->create_shader( "shader/bunny_frag.glsl");
 		test_pass->shader_process();
-		test_pass->draw_commands.push_back(draw_command);
 		test_pass->uniforms["skybox"] = 0;
 
 		frame_buffer_pass = std::make_unique<OpenGL_Pass>("framebuffer_pass");
@@ -288,7 +244,8 @@ namespace Helios
 			test_pass->clear_state.clear_color_value = clear_color;
 			test_pass->clear_state.clear_depth = true;
 			test_pass->update();
-			glBindVertexArray(bunny_VAO);
+			bunny_vertex_array->bind();
+			//glBindVertexArray(bunny_VAO);
 			glDrawArrays(GL_TRIANGLES, 0, 3000);
 			// draw skybox as last
 			glEnable(GL_DEPTH_TEST);

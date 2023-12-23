@@ -4,7 +4,7 @@
 
 namespace Helios
 {
-    OpenGL_Vertex_Array::OpenGL_Vertex_Array()
+    OpenGL_Vertex_Array::OpenGL_Vertex_Array(): buffer_size(0)
     {
         glGenVertexArrays(1, &resource);
         bind();
@@ -20,61 +20,47 @@ namespace Helios
         glBindVertexArray(resource);
     }
 
-    auto  OpenGL_Vertex_Array::add_attributes(Vertex_Array_Specifier& specifier) -> void
+    auto OpenGL_Vertex_Array::add_attributes(Vertex_Attribute&& attribute) -> void
+    {
+        buffer_size += attribute.buffer_offset;
+        attributes.emplace_back(attribute);
+    }
+
+    auto OpenGL_Vertex_Array::create_buffer_and_set_data() -> void
     {
         bind();
-        auto& attributes = specifier.attributes_;
-        int idx = 0;
-        for(auto& attribute: attributes)
-        {
+        unsigned int buffer;
+        glGenBuffers(1, &buffer);
+    	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glBufferData(GL_ARRAY_BUFFER, buffer_size, nullptr, GL_STATIC_DRAW);
+        auto offset = 0;
+        for (auto& attribute: attributes) {
+            glBufferSubData(GL_ARRAY_BUFFER, offset, attribute.buffer_offset, attribute.buffer);
+            offset += attribute.buffer_offset;
+        }
+    }
+
+    auto  OpenGL_Vertex_Array::set_attributes_pointer() -> void
+    {
+        bind();
+        auto idx = 0;
+        auto offset = 0;
+        for (auto& attribute: attributes) {
             glEnableVertexAttribArray(idx);
             //TODO: GL_TRUE and GL_FALSE need normalize to controll
             //TODO: calculate stride size of byte so you needn't times sizeof(xx)
-            //std::cout << "idx: " << idx << " size: " << get_size_by_type(attribute.type) << " GLenum: " << get_GLenum_by_type(attribute.type) << " " <<  specifier.stride << " " << attribute.offset << std::endl;
             glVertexAttribPointer(
                 idx, 
-                get_size_by_type(attribute.type), 
-                get_GLenum_by_type(attribute.type), 
+                attribute.element_size, 
+                GL_FLOAT, 
                 GL_FALSE, 
-                specifier.stride * sizeof(float), 
-                (void*)(attribute.offset * sizeof(float))
-                );
+                attribute.element_size * sizeof(float), 
+                (void*)(offset)
+            );
+            offset += attribute.buffer_offset;
             idx++;
         }
-    }
-
-    auto OpenGL_Vertex_Array::get_GLenum_by_type(Vertex_Attribute_Type& type) -> GLenum
-    {
-        switch(type)
-        {
-            case Vertex_Attribute_Type::Float:
-            case Vertex_Attribute_Type::Float2:
-            case Vertex_Attribute_Type::Float3:
-                return GL_FLOAT;
-            default:
-                return 0;
-        }
-
-        LOG_ERROR(" Can not get GLenum type by this type !");
-        return 0;
-    }
-
-    auto OpenGL_Vertex_Array::get_size_by_type(Vertex_Attribute_Type& type) -> GLint
-    {
-        switch(type)
-        {
-            case Vertex_Attribute_Type::Float:
-                return 1;
-            case Vertex_Attribute_Type::Float2:
-                return 2;
-            case Vertex_Attribute_Type::Float3:
-                return 3;
-            default:
-                return 0;
-        }
-
-        LOG_ERROR(" Can not get size by this type !");
-        return 0;
+        
     }
 
 }
