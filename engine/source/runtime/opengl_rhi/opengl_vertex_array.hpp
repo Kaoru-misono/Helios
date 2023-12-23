@@ -14,8 +14,6 @@ namespace Helios
     auto bind() -> void override;
     auto add_attributes(Vertex_Attribute&& attribute) -> void override;
     auto create_buffer_and_set_data() -> void override;
-    auto set_attributes_pointer() -> void override;
-
     private:
     GLuint resource;
     unsigned int buffer_size;

@@ -46,7 +46,7 @@ namespace Helios
         virtual auto bind() -> void = 0;
         virtual auto add_attributes(Vertex_Attribute&& attribute) -> void = 0;
         virtual auto create_buffer_and_set_data() -> void = 0;
-        virtual auto set_attributes_pointer() -> void = 0;
+        unsigned int primitive_count{0};
     protected:
         std::vector<Vertex_Attribute> attributes;
     };

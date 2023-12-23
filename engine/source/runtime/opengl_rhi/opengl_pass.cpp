@@ -54,9 +54,10 @@ namespace Helios
 
     auto OpenGL_Pass::render() -> void
     {
-        for(auto& cmd: draw_commands) {
+        for(auto& cmd: queue) {
             cmd.vertex_array->bind();
-            glDrawArrays(GL_TRIANGLES, 0, 3000);
+            auto primitive_count = cmd.vertex_array->primitive_count;
+            glDrawArrays(GL_TRIANGLES, 0, primitive_count);
             glBindVertexArray(0);
         }
     }

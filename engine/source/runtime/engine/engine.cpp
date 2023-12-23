@@ -58,13 +58,22 @@ namespace Helios
 
 		float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
 			// positions   // texCoords
-			-1.0f,  1.0f,  0.0f, 1.0f,
-			-1.0f, -1.0f,  0.0f, 0.0f,
-			1.0f, -1.0f,  1.0f, 0.0f,
+			-1.0f,  1.0f,
+			-1.0f, -1.0f,
+			1.0f, -1.0f, 
+			-1.0f,  1.0f,
+			1.0f, -1.0f, 
+			1.0f,  1.0f 
+    	};
 
-			-1.0f,  1.0f,  0.0f, 1.0f,
-			1.0f, -1.0f,  1.0f, 0.0f,
-			1.0f,  1.0f,  1.0f, 1.0f
+		float quadTexcoord[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+			// positions   // texCoords
+			0.0f, 1.0f,
+			0.0f, 0.0f,
+			1.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 0.0f,
+			1.0f, 1.0f
     	};
 
 		float skyboxVertices[] = {
@@ -116,59 +125,61 @@ namespace Helios
 		Assimp_Config config;
 		Assimp_Model bunny = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/bunny_1k.obj", config);
 		//Assimp_Model marry = Model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Alisya/pink.pmx");
-
-		auto bunny_vertex_info = bunny.meshes[0].vertex_info;
-		const int num_of_vertex = (int)(bunny_vertex_info.position.size());
-		//std::vector<glm::vec3> bunny_vertices;
-		auto bunny_position_1 = std::span<glm::vec3>(bunny_vertex_info.position);
-		auto bunny_normal_1 = std::span<glm::vec3>(bunny_vertex_info.normal);
-		auto bunny_vertex_array = m_rhi->create_vertex_array();
-		bunny_vertex_array->add_attributes({"POSITION", 3, bunny_position_1.size_bytes(), bunny_position_1.data()});
-		bunny_vertex_array->add_attributes({"NORMAL", 3, bunny_normal_1.size_bytes(), bunny_normal_1.data()});
-		bunny_vertex_array->create_buffer_and_set_data();
-		bunny_vertex_array->set_attributes_pointer();
 		// screen quad VAO
-    	unsigned int quadVAO, quadVBO;
-    	glGenVertexArrays(1, &quadVAO);
-    	glGenBuffers(1, &quadVBO);
-    	glBindVertexArray(quadVAO);
-    	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    	glEnableVertexAttribArray(0);
-    	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    	glEnableVertexAttribArray(1);
-    	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+		
 
-		unsigned int skyboxVAO, skyboxVBO;
-    	glGenVertexArrays(1, &skyboxVAO);
-    	glGenBuffers(1, &skyboxVBO);
-    	glBindVertexArray(skyboxVAO);
-    	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-    	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-    	glEnableVertexAttribArray(0);
-    	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-		// RHI_Buffer_Create_info index_info;
-		// index_info.data_array = std::make_shared<Data_Array>(sizeof(indices), indices);
-		// std::shared_ptr<RHI_Buffer> index_buffer = m_rhi->create_buffer(index_info, RHI_Usage_Flag::index_buffer, index_info.data_array->size, 0);
 
 		test_pass = std::make_unique<OpenGL_Pass>("test_pass");
 		test_pass->vertex_shader = m_rhi->create_shader( "shader/bunny_vert.glsl");
 		test_pass->fragment_shader = m_rhi->create_shader( "shader/bunny_frag.glsl");
 		test_pass->shader_process();
-		test_pass->uniforms["skybox"] = 0;
+		test_pass->set_uniform("skybox", 0);
+		auto bunny_vertex_info = bunny.meshes[0].vertex_info;
+		const int num_of_vertex = (int)(bunny_vertex_info.position.size());
+		auto bunny_position_1 = std::span<glm::vec3>(bunny_vertex_info.position);
+		auto bunny_normal_1 = std::span<glm::vec3>(bunny_vertex_info.normal);
+		{
+			RHI_Draw_Command cmd;
+			cmd.vertex_array = m_rhi->create_vertex_array();
+			auto& bunny_vertex_array = cmd.vertex_array;
+			bunny_vertex_array->primitive_count += bunny_position_1.size();
+			bunny_vertex_array->add_attributes({"POSITION", 3, bunny_position_1.size_bytes(), bunny_position_1.data()});
+			bunny_vertex_array->add_attributes({"NORMAL", 3, bunny_normal_1.size_bytes(), bunny_normal_1.data()});
+			bunny_vertex_array->create_buffer_and_set_data();
+			test_pass->queue.emplace_back(std::move(cmd));
+		}
 
 		frame_buffer_pass = std::make_unique<OpenGL_Pass>("framebuffer_pass");
 		frame_buffer_pass->vertex_shader = m_rhi->create_shader( "shader/framebuffer-vert.glsl");
 		frame_buffer_pass->fragment_shader = m_rhi->create_shader( "shader/framebuffer-frag.glsl");
 		frame_buffer_pass->shader_process();
-		frame_buffer_pass->uniforms["screenTexture"] = 0;
+		frame_buffer_pass->set_uniform("screenTexture", 0);
+		{
+			RHI_Draw_Command cmd;
+			cmd.vertex_array = m_rhi->create_vertex_array();
+			auto& quad_array = cmd.vertex_array;
+			quad_array->primitive_count = 6;
+			quad_array->add_attributes({"POSITION", 2, sizeof(quadVertices), &quadVertices});
+			quad_array->add_attributes({"TEXCOORD", 2, sizeof(quadTexcoord), &quadTexcoord});
+			quad_array->create_buffer_and_set_data();
+			frame_buffer_pass->queue.emplace_back(std::move(cmd));
+		}
 
 		auto skybox_pass = std::make_unique<OpenGL_Pass>("skybox_pass");
 		skybox_pass->vertex_shader = m_rhi->create_shader( "shader/skybox-vert.glsl");
 		skybox_pass->fragment_shader = m_rhi->create_shader( "shader/skybox-frag.glsl");
 		skybox_pass->shader_process();
-		skybox_pass->uniforms["skybox"] = 0;
+		skybox_pass->set_uniform("skybox", 0);
+		{
+			RHI_Draw_Command cmd;
+			cmd.vertex_array = m_rhi->create_vertex_array();
+			auto& skybox_array = cmd.vertex_array;
+			skybox_array->primitive_count = 6;
+			skybox_array->add_attributes({"POSITION", 3, sizeof(skyboxVertices), &skyboxVertices});
+			skybox_array->create_buffer_and_set_data();
+			skybox_pass->queue.emplace_back(std::move(cmd));
+		}
 
 		context.m_main_camera->set_camera_parameters(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 		auto framebuffer = std::make_unique<OpenGL_Framebuffer>(glm::vec2{context.m_window->get_width(), context.m_window->get_height()});
@@ -244,9 +255,7 @@ namespace Helios
 			test_pass->clear_state.clear_color_value = clear_color;
 			test_pass->clear_state.clear_depth = true;
 			test_pass->update();
-			bunny_vertex_array->bind();
-			//glBindVertexArray(bunny_VAO);
-			glDrawArrays(GL_TRIANGLES, 0, 3000);
+			test_pass->render();
 			// draw skybox as last
 			glEnable(GL_DEPTH_TEST);
 
@@ -257,21 +266,22 @@ namespace Helios
 			skybox_pass->clear_state.allow_clear = false;
 			skybox_pass->update();
         	// skybox cube
-        	glBindVertexArray(skyboxVAO);
         	glActiveTexture(GL_TEXTURE0);
         	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-        	glDrawArrays(GL_TRIANGLES, 0, 36);
-			glBindVertexArray(0);
+        	skybox_pass->render();
         	glDepthFunc(GL_LESS);
 			framebuffer->unbind();
 
 			frame_buffer_pass->clear_state.clear_color = true;
 			frame_buffer_pass->clear_state.clear_depth = false;
 			frame_buffer_pass->gpu_program->bind();
-			glBindVertexArray(quadVAO);
-			glDisable(GL_DEPTH_TEST);
+			
+			//frame_buffer_pass->update();
+			frame_buffer_pass->update();
+			frame_buffer_pass->enable_depth_test = false;
 			glBindTexture(GL_TEXTURE_2D, framebuffer->texColorBuffer);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			frame_buffer_pass->render();
+
 
 			context.m_imgui_layer->render();
 			context.m_window->swap_buffers();

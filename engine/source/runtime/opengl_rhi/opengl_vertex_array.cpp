@@ -34,18 +34,9 @@ namespace Helios
     	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 		glBufferData(GL_ARRAY_BUFFER, buffer_size, nullptr, GL_STATIC_DRAW);
         auto offset = 0;
+        auto idx = 0;
         for (auto& attribute: attributes) {
             glBufferSubData(GL_ARRAY_BUFFER, offset, attribute.buffer_offset, attribute.buffer);
-            offset += attribute.buffer_offset;
-        }
-    }
-
-    auto  OpenGL_Vertex_Array::set_attributes_pointer() -> void
-    {
-        bind();
-        auto idx = 0;
-        auto offset = 0;
-        for (auto& attribute: attributes) {
             glEnableVertexAttribArray(idx);
             //TODO: GL_TRUE and GL_FALSE need normalize to controll
             //TODO: calculate stride size of byte so you needn't times sizeof(xx)
@@ -60,7 +51,5 @@ namespace Helios
             offset += attribute.buffer_offset;
             idx++;
         }
-        
     }
-
 }

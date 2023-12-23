@@ -11,6 +11,7 @@ namespace Helios
 {
     struct OpenGL_Draw_Command final : RHI_Draw_Command
     {
-
+        OpenGL_Draw_Command();
+        ~OpenGL_Draw_Command() override;
     };
 }

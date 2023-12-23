@@ -18,11 +18,11 @@ namespace Helios
     struct RHI_Draw_Command
     {
         virtual ~RHI_Draw_Command() {}
-        Primitive primitive;
-        std::shared_ptr<RHI_Vertex_Array> vertex_array;
+        Primitive primitive{Primitive::trianges};
+        std::shared_ptr<RHI_Vertex_Array> vertex_array{};
         //std::shared_ptr<RHI_Buffer> vertex_buffer;
         //std::optional<RHI_Buffer> index_buffer;
-        std::unordered_map<std::string, std::any> uniform;
-        std::unordered_map<std::string, std::any> sampler;
+        std::unordered_map<std::string, std::any> uniform{};
+        std::unordered_map<std::string, std::any> sampler{};
     };
 }
