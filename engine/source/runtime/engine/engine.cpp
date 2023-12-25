@@ -143,7 +143,7 @@ namespace Helios
 			RHI_Draw_Command cmd;
 			cmd.vertex_array = m_rhi->create_vertex_array();
 			auto& bunny_vertex_array = cmd.vertex_array;
-			bunny_vertex_array->primitive_count += bunny_position_1.size();
+			bunny_vertex_array->primitive_count += bunny_position_1.size() / (size_t)3;
 			bunny_vertex_array->add_attributes({"POSITION", 3, bunny_position_1.size_bytes(), bunny_position_1.data()});
 			bunny_vertex_array->add_attributes({"NORMAL", 3, bunny_normal_1.size_bytes(), bunny_normal_1.data()});
 			bunny_vertex_array->create_buffer_and_set_data();
@@ -159,7 +159,7 @@ namespace Helios
 			RHI_Draw_Command cmd;
 			cmd.vertex_array = m_rhi->create_vertex_array();
 			auto& quad_array = cmd.vertex_array;
-			quad_array->primitive_count = 6;
+			quad_array->primitive_count = 2;
 			quad_array->add_attributes({"POSITION", 2, sizeof(quadVertices), &quadVertices});
 			quad_array->add_attributes({"TEXCOORD", 2, sizeof(quadTexcoord), &quadTexcoord});
 			quad_array->create_buffer_and_set_data();
@@ -175,7 +175,7 @@ namespace Helios
 			RHI_Draw_Command cmd;
 			cmd.vertex_array = m_rhi->create_vertex_array();
 			auto& skybox_array = cmd.vertex_array;
-			skybox_array->primitive_count = 6;
+			skybox_array->primitive_count = 12;
 			skybox_array->add_attributes({"POSITION", 3, sizeof(skyboxVertices), &skyboxVertices});
 			skybox_array->create_buffer_and_set_data();
 			skybox_pass->queue.emplace_back(std::move(cmd));
@@ -226,12 +226,26 @@ namespace Helios
 			"D:/github/Helios/engine/asset/texture/sky-box/back.jpg"
 		};
 		unsigned int cubemapTexture = loadCubemap(faces);
+		GLuint b_index = glGetUniformBlockIndex(test_pass->gpu_program->id(), "transforms");
+		glUniformBlockBinding(test_pass->gpu_program->id(), b_index, 0);
+		unsigned int transform_ubo;
+		glGenBuffers(1, &transform_ubo);
+		glBindBuffer(GL_UNIFORM_BUFFER, transform_ubo);
+		glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 0, transform_ubo, 0, 2 * sizeof(glm::mat4));
 
 		while (!context.m_window->should_close())
 		{
 			m_input_manager->process_control_command();
 			context.m_imgui_layer->update();
 			context.m_main_camera->update();
+			glBindBuffer(GL_UNIFORM_BUFFER, transform_ubo);
+			glm::mat4 view = context.m_main_camera->get_view_matrix();
+			glm::mat4 proj = context.m_main_camera->get_projection_matrix();
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			framebuffer->bind();
 			glActiveTexture(GL_TEXTURE0);
         	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
@@ -249,8 +263,8 @@ namespace Helios
 
 			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
 			test_pass->set_uniform("model_matrix", model_mat);
-			test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-			test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+			// test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+			// test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
 			test_pass->clear_state.clear_color = true;
 			test_pass->clear_state.clear_color_value = clear_color;
 			test_pass->clear_state.clear_depth = true;

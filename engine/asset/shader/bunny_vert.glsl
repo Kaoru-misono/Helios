@@ -9,10 +9,13 @@ out vec3 v_Normal;
 out vec3 v_Color;
 
 uniform mat4 model_matrix;
-uniform mat4 view_matrix;
-uniform mat4 projection_matrix;
-
-uniform vec3 random_vec;
+layout (std140, binding = 0) uniform transforms
+{
+	mat4 view_matrix;
+	mat4 projection_matrix;
+};
+// uniform mat4 view_matrix;
+// uniform mat4 projection_matrix;
 
 void main()
 {

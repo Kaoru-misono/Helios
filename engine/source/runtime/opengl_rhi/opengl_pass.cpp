@@ -57,7 +57,7 @@ namespace Helios
         for(auto& cmd: queue) {
             cmd.vertex_array->bind();
             auto primitive_count = cmd.vertex_array->primitive_count;
-            glDrawArrays(GL_TRIANGLES, 0, primitive_count);
+            glDrawArrays(GL_TRIANGLES, 0, primitive_count * 3);
             glBindVertexArray(0);
         }
     }

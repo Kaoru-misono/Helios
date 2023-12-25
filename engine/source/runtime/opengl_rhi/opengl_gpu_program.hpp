@@ -18,6 +18,7 @@ namespace Helios
         auto add_fragment_shader(const std::shared_ptr<RHI_Shader>& fragment_shader) -> void override;
         auto link_shader() -> void override;
         auto set_uniform(const std::string& name, std::any const& value) -> void override;
+        auto id() -> unsigned int override { return resource; }
 
     private:
         auto attach_shader(const std::shared_ptr<RHI_Shader>& shader) -> void;

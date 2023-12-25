@@ -35,6 +35,7 @@ namespace Helios
         virtual auto add_fragment_shader(const std::shared_ptr<RHI_Shader>& fragment_shader) -> void = 0;
         virtual auto link_shader() -> void = 0;
         virtual auto set_uniform(const std::string& name, std::any const& value) -> void = 0;
+        virtual auto id() -> unsigned int = 0;
 
     };
 
