@@ -43,8 +43,22 @@ namespace Helios
 
     struct RHI_Texture : RHI_Resource
     {
+        enum struct Kind
+        {
+            TEX_2D,
+            TEX_3D,
+            TEX_CUBE,
+        };
+
+        enum struct Format
+        {
+            r8,
+            rgb8,
+            rgba8,
+            depth24,
+        };
         virtual ~RHI_Texture() {}
-        virtual auto set_texture_sampler(unsigned int texture_unit) -> void = 0;
+        virtual auto texture_id() const -> unsigned int = 0;
     };
 
     struct RHI_Framebuffer

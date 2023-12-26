@@ -127,27 +127,32 @@ namespace Helios
 		Assimp_Model marry = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/Alisya/pink.pmx", config);
 
 		test_pass = std::make_unique<OpenGL_Pass>("test_pass");
-		test_pass->vertex_shader = m_rhi->create_shader( "shader/bunny_vert.glsl");
-		test_pass->fragment_shader = m_rhi->create_shader( "shader/bunny_frag.glsl");
+		test_pass->vertex_shader = m_rhi->create_shader( "shader/alisya_vert.glsl");
+		test_pass->fragment_shader = m_rhi->create_shader( "shader/alisya_frag.glsl");
 		// Expode geometry shader, you need to replace fragment shader v -> g if you want to open it
 		// test_pass->geometry_shader = m_rhi->create_shader( "shader/expode_geom.glsl");
 		test_pass->shader_process();
 		test_pass->set_uniform("skybox", 0);
-
+		test_pass->set_uniform("cloth", 1);
 		{
+			int mesh_id = 0;
 			for (auto mesh: marry.meshes) {
 				auto vertex_info = mesh.vertex_info;
 				const int num_of_vertex = (int)(vertex_info.position.size());
 				auto position = std::span<glm::vec3>(vertex_info.position);
 				auto normal = std::span<glm::vec3>(vertex_info.normal);
+				auto texcoord = std::span<glm::vec2>(vertex_info.texcoord);
 				RHI_Draw_Command cmd;
 				cmd.vertex_array = m_rhi->create_vertex_array();
 				auto& vertex_array = cmd.vertex_array;
 				vertex_array->primitive_count += position.size() / (size_t)3;
 				vertex_array->add_attributes({"POSITION", 3, position.size_bytes(), position.data()});
 				vertex_array->add_attributes({"NORMAL", 3, normal.size_bytes(), normal.data()});
+				vertex_array->add_attributes({"TEXCOORD", 2, texcoord.size_bytes(), texcoord.data()});
 				vertex_array->create_buffer_and_set_data();
+				cmd.uniform["mesh_id"] = mesh_id;
 				test_pass->queue.emplace_back(std::move(cmd));
+				mesh_id++;
 			}
 		}
 
@@ -185,6 +190,42 @@ namespace Helios
 		context.m_main_camera->set_camera_parameters(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 		auto framebuffer = std::make_unique<OpenGL_Framebuffer>(glm::vec2{context.m_window->get_width(), context.m_window->get_height()});
 
+		auto loadTexture = [](char const * path) -> unsigned int
+		{
+			unsigned int textureID;
+			glGenTextures(1, &textureID);
+
+			int width, height, nrComponents;
+			unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+			if (data)
+			{
+				GLenum format;
+				if (nrComponents == 1)
+					format = GL_RED;
+				else if (nrComponents == 3)
+					format = GL_RGB;
+				else if (nrComponents == 4)
+					format = GL_RGBA;
+
+				glBindTexture(GL_TEXTURE_2D, textureID);
+				glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+				glGenerateMipmap(GL_TEXTURE_2D);
+
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+				stbi_image_free(data);
+			}
+			else
+			{
+				std::cout << "Texture failed to load at path: " << path << std::endl;
+				stbi_image_free(data);
+			}
+
+			return textureID;
+		};
 		auto loadCubemap = [](std::vector<std::string> faces) -> unsigned int
 		{
 			unsigned int textureID;
@@ -227,6 +268,9 @@ namespace Helios
 			"D:/github/Helios/engine/asset/texture/sky-box/back.jpg"
 		};
 		unsigned int cubemapTexture = loadCubemap(faces);
+		auto cloth_tex = loadTexture("D:/github/Helios/engine/asset/model/Alisya/cloth.png");
+
+		// UBO
 		GLuint b_index = glGetUniformBlockIndex(test_pass->gpu_program->id(), "transforms");
 		glUniformBlockBinding(test_pass->gpu_program->id(), b_index, 0);
 		unsigned int transform_ubo;
@@ -241,14 +285,16 @@ namespace Helios
 			m_input_manager->process_control_command();
 			context.m_imgui_layer->update();
 			context.m_main_camera->update();
+			// UBO
 			glBindBuffer(GL_UNIFORM_BUFFER, transform_ubo);
 			glm::mat4 view = context.m_main_camera->get_view_matrix();
 			glm::mat4 proj = context.m_main_camera->get_projection_matrix();
 			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 			framebuffer->bind();
-			glActiveTexture(GL_TEXTURE0);
+			glActiveTexture(GL_TEXTURE1);
         	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 			renderer_tick();
 			glEnable(GL_DEPTH_TEST);
@@ -262,7 +308,8 @@ namespace Helios
 			ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
 			ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
 			ImGui::End();
-
+			glActiveTexture(GL_TEXTURE1);
+        	glBindTexture(GL_TEXTURE_2D, cloth_tex);
 			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
 			test_pass->set_uniform("model_matrix", model_mat);
 			test_pass->set_uniform("time", (float)glfwGetTime());
@@ -275,7 +322,6 @@ namespace Helios
 			test_pass->render();
 			// draw skybox as last
 			glEnable(GL_DEPTH_TEST);
-
         	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
 			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());

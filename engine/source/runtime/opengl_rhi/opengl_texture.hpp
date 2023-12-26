@@ -1,7 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include "rhi/rhi_defination.hpp"
-
+#include "resource/image.hpp"
 
 
 namespace Helios
@@ -9,27 +9,15 @@ namespace Helios
     class OpenGL_Texture : public RHI_Texture
     {
     public:
-        struct Image
-        {
-            unsigned char* data;
-            GLenum format;
-            int width, height, nrComponents;
-        };
+        std::vector<std::shared_ptr<Image>> images;
 
-        OpenGL_Texture(const std::string& path);
+        OpenGL_Texture();
         ~OpenGL_Texture() override;
 
-        auto set_texture_sampler(unsigned int texture_unit) -> void override;
-        auto get_texture_unit() -> unsigned int;
+        auto texture_id() const -> unsigned int override { return resource; }
 
-        static auto load_texture(const std::string& path) -> Image;
-
-        auto create_texture() -> void;
-        auto get_gltexture() -> GLuint { return resource; }
-
+        static auto load_2D_texture(std::string path, bool flip = false) -> std::shared_ptr<OpenGL_Texture>;
     private:
         GLuint resource;
-        Image texture_data;
-        unsigned int texture_unit_;
     };
 }
