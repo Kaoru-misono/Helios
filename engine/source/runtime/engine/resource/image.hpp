@@ -24,7 +24,7 @@ namespace Helios
         auto height() const noexcept -> int;
         auto data() const noexcept -> unsigned char*;
 
-        static auto load(std::string path, bool flip = false) -> std::shared_ptr<Image>;
+        static auto load(std::string const& path, bool flip = false) -> std::shared_ptr<Image>;
     private:
         int width_{0};
         int height_{0};

@@ -1,5 +1,6 @@
 # pragma once
 #include "pre-compile.h"
+#include "rhi/texture.hpp"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
@@ -41,31 +42,11 @@ namespace Helios
 
     };
 
-    struct RHI_Texture : RHI_Resource
-    {
-        enum struct Kind
-        {
-            TEX_2D,
-            TEX_3D,
-            TEX_CUBE,
-        };
-
-        enum struct Format
-        {
-            r8,
-            rgb8,
-            rgba8,
-            depth24,
-        };
-        virtual ~RHI_Texture() {}
-        virtual auto texture_id() const -> unsigned int = 0;
-    };
-
     struct RHI_Framebuffer
     {
         struct Attachment
         {
-            std::unique_ptr<RHI_Texture> texture;
+            std::unique_ptr<Texture> texture;
         };
         std::vector<Attachment> colors;
         Attachment depth;

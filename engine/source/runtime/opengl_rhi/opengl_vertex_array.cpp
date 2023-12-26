@@ -13,6 +13,7 @@ namespace Helios
     OpenGL_Vertex_Array::~OpenGL_Vertex_Array()
     {
         glDeleteVertexArrays(1, &resource);
+        glDeleteBuffers(1, &buffer);
     }
 
     auto OpenGL_Vertex_Array::bind() -> void
@@ -29,7 +30,6 @@ namespace Helios
     auto OpenGL_Vertex_Array::create_buffer_and_set_data() -> void
     {
         bind();
-        unsigned int buffer;
         glGenBuffers(1, &buffer);
     	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 		glBufferData(GL_ARRAY_BUFFER, buffer_size, nullptr, GL_STATIC_DRAW);

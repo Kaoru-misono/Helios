@@ -25,7 +25,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <q_model.hpp>
 #include <stb_image.h>
 #include "import_assimp_model/import_assimp_model.hpp"
 
@@ -125,36 +124,46 @@ namespace Helios
 		Assimp_Config config;
 		Assimp_Model bunny = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/bunny_1k.obj", config);
 		Assimp_Model marry = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/Alisya/pink.pmx", config);
-
+		auto cloth_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth.png"});
+		auto cloth_tex_2 = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth_2.png"});
+		auto eye_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/eye.png"});
+		auto face_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/face.png"});
+		auto hair_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/hair.png"});
+		auto emote_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/emote.png"});
+		auto pink_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/nk.png"});
+		std::unordered_map<int, std::shared_ptr<Texture>> material_map{
+			{0, cloth_tex},
+			{1, cloth_tex},
+			{2, cloth_tex},
+			{3, cloth_tex},
+			{4, cloth_tex},
+			{5, cloth_tex},
+			{6, cloth_tex},
+			{7, cloth_tex},
+			{8, cloth_tex},
+			{9, cloth_tex},
+			{10, cloth_tex_2},
+			{11, cloth_tex_2},
+			{12, cloth_tex_2},
+			{13, cloth_tex_2},
+			{14, hair_tex},
+			{15, cloth_tex},
+			{16, cloth_tex_2},
+			{17, cloth_tex},
+			{18, face_tex},
+			{19, face_tex},
+			{20, eye_tex},
+			{21, eye_tex},
+		};
+		auto test_array = m_rhi->create_vertex_array();
 		test_pass = std::make_unique<OpenGL_Pass>("test_pass");
 		test_pass->vertex_shader = m_rhi->create_shader( "shader/alisya_vert.glsl");
 		test_pass->fragment_shader = m_rhi->create_shader( "shader/alisya_frag.glsl");
 		// Expode geometry shader, you need to replace fragment shader v -> g if you want to open it
 		// test_pass->geometry_shader = m_rhi->create_shader( "shader/expode_geom.glsl");
 		test_pass->shader_process();
-		test_pass->set_uniform("skybox", 0);
-		test_pass->set_uniform("cloth", 1);
-		{
-			int mesh_id = 0;
-			for (auto mesh: marry.meshes) {
-				auto vertex_info = mesh.vertex_info;
-				const int num_of_vertex = (int)(vertex_info.position.size());
-				auto position = std::span<glm::vec3>(vertex_info.position);
-				auto normal = std::span<glm::vec3>(vertex_info.normal);
-				auto texcoord = std::span<glm::vec2>(vertex_info.texcoord);
-				RHI_Draw_Command cmd;
-				cmd.vertex_array = m_rhi->create_vertex_array();
-				auto& vertex_array = cmd.vertex_array;
-				vertex_array->primitive_count += position.size() / (size_t)3;
-				vertex_array->add_attributes({"POSITION", 3, position.size_bytes(), position.data()});
-				vertex_array->add_attributes({"NORMAL", 3, normal.size_bytes(), normal.data()});
-				vertex_array->add_attributes({"TEXCOORD", 2, texcoord.size_bytes(), texcoord.data()});
-				vertex_array->create_buffer_and_set_data();
-				cmd.uniform["mesh_id"] = mesh_id;
-				test_pass->queue.emplace_back(std::move(cmd));
-				mesh_id++;
-			}
-		}
+		//test_pass->set_uniform("skybox", 0);
+	
 
 		frame_buffer_pass = std::make_unique<OpenGL_Pass>("framebuffer_pass");
 		frame_buffer_pass->vertex_shader = m_rhi->create_shader( "shader/framebuffer-vert.glsl");
@@ -258,7 +267,7 @@ namespace Helios
 			return textureID;
 		};
 
-		vector<std::string> faces
+		std::vector<std::string> faces
 		{
 			"D:/github/Helios/engine/asset/texture/sky-box/right.jpg",
 			"D:/github/Helios/engine/asset/texture/sky-box/left.jpg",
@@ -268,7 +277,7 @@ namespace Helios
 			"D:/github/Helios/engine/asset/texture/sky-box/back.jpg"
 		};
 		unsigned int cubemapTexture = loadCubemap(faces);
-		auto cloth_tex = loadTexture("D:/github/Helios/engine/asset/model/Alisya/cloth.png");
+		//auto cloth_tex = loadTexture("D:/github/Helios/engine/asset/model/Alisya/cloth.png");
 
 		// UBO
 		GLuint b_index = glGetUniformBlockIndex(test_pass->gpu_program->id(), "transforms");
@@ -294,8 +303,8 @@ namespace Helios
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 			framebuffer->bind();
-			glActiveTexture(GL_TEXTURE1);
-        	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+			//glActiveTexture(GL_TEXTURE0);
+        	//glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 			renderer_tick();
 			glEnable(GL_DEPTH_TEST);
 
@@ -308,8 +317,34 @@ namespace Helios
 			ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
 			ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
 			ImGui::End();
-			glActiveTexture(GL_TEXTURE1);
-        	glBindTexture(GL_TEXTURE_2D, cloth_tex);
+			{
+				test_pass->queue.clear();
+				int mesh_id = 0;
+				for (auto& mesh: marry.meshes) {
+				auto& vertex_info = mesh.vertex_info;
+				const int num_of_vertex = (int)(vertex_info.position.size());
+				auto position = std::span<glm::vec3>(vertex_info.position);
+				auto normal = std::span<glm::vec3>(vertex_info.normal);
+				auto texcoord = std::span<glm::vec2>(vertex_info.texcoord);
+				RHI_Draw_Command cmd;
+				cmd.vertex_array = m_rhi->create_vertex_array();
+				auto& vertex_array = cmd.vertex_array;
+				vertex_array->primitive_count += position.size() / (size_t)3;
+				vertex_array->add_attributes({"POSITION", 3, position.size_bytes(), position.data()});
+				vertex_array->add_attributes({"NORMAL", 3, normal.size_bytes(), normal.data()});
+				vertex_array->add_attributes({"TEXCOORD", 2, texcoord.size_bytes(), texcoord.data()});
+				vertex_array->create_buffer_and_set_data();
+				cmd.uniform["mesh_id"] = mesh_id;
+				if (material_map[mesh_id] == nullptr)
+					std::cout << mesh_id << std::endl;
+				cmd.uniform.try_emplace("base_color", material_map[mesh_id]);
+				Texture_Sampler sampler;
+				sampler.min_filter = Texture_Sampler::Filter::liner_mipmap_liner;
+				cmd.sampler.try_emplace("base_color", sampler);
+				test_pass->queue.emplace_back(std::move(cmd));
+				mesh_id++;
+				}
+			}
 			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
 			test_pass->set_uniform("model_matrix", model_mat);
 			test_pass->set_uniform("time", (float)glfwGetTime());

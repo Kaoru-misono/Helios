@@ -55,7 +55,7 @@ namespace Helios
         return data_;
     }
 
-    auto Image::load(std::string path, bool flip) -> std::shared_ptr<Image>
+    auto Image::load(std::string const& path, bool flip) -> std::shared_ptr<Image>
     {
         stbi_set_flip_vertically_on_load(flip ? 1 : 0);
         return make_shared<Image>(path);

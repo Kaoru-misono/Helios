@@ -16,6 +16,7 @@ namespace Helios
     auto create_buffer_and_set_data() -> void override;
     private:
     GLuint resource;
+    unsigned int buffer;
     unsigned int buffer_size;
     };
 }

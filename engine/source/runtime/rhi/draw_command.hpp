@@ -2,6 +2,7 @@
 #include "../pre-compile.h"
 #include "rhi_defination.hpp"
 #include "rhi/vertex_array_spcifier.hpp"
+#include "rhi/texture.hpp"
 namespace Helios
 {
     enum struct Primitive
@@ -24,7 +25,6 @@ namespace Helios
         //std::optional<RHI_Buffer> index_buffer;
         // Uniforms changed between cmds should be set here
         std::unordered_map<std::string, std::any> uniform{};
-        // TODO: use sampler to replace any
-        std::unordered_map<std::string, std::any> sampler{};
+        std::unordered_map<std::string, Texture_Sampler> sampler{};
     };
 }

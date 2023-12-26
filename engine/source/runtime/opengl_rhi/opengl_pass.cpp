@@ -1,4 +1,5 @@
 #include "opengl_pass.hpp"
+#include "adapter.hpp"
 #include "logger/logger_marco.hpp"
 
 namespace Helios
@@ -59,8 +60,28 @@ namespace Helios
     {
         for(auto& cmd: queue) {
             cmd.vertex_array->bind();
+            int texture_unit = 0;
             for (auto uniform: cmd.uniform) {
-                gpu_program->set_uniform(uniform.first, uniform.second);
+                std::string const type = uniform.second.type().name();
+                if (type == "class std::shared_ptr<struct Helios::Texture>") {
+                    auto texture = std::any_cast<std::shared_ptr<Texture>>(uniform.second);
+                    auto type = texture->kind == Texture::Kind::TEX_2D ? GL_TEXTURE_2D : texture->kind == Texture::Kind::TEX_3D ? GL_TEXTURE_3D : GL_TEXTURE_CUBE_MAP;
+
+                    glActiveTexture(GL_TEXTURE0 + texture_unit);
+                    gpu_program->set_uniform(uniform.first, texture_unit);
+        	        glBindTexture(type, texture->texture_id());
+			        glGenerateMipmap(type);
+                    auto& sampler = cmd.sampler[uniform.first];
+			        glTexParameteri(type, GL_TEXTURE_WRAP_S, to_gl_enum(sampler.warp_s));
+			        glTexParameteri(type, GL_TEXTURE_WRAP_T, to_gl_enum(sampler.warp_t));
+                    if (sampler.warp_r != Texture_Sampler::Warp::none)
+			            glTexParameteri(type, GL_TEXTURE_WRAP_R, to_gl_enum(sampler.warp_r));
+			        glTexParameteri(type, GL_TEXTURE_MIN_FILTER, to_gl_enum(sampler.min_filter));
+			        glTexParameteri(type, GL_TEXTURE_MAG_FILTER, to_gl_enum(sampler.mag_filter));
+                    texture_unit++;
+                }
+                else
+                    gpu_program->set_uniform(uniform.first, uniform.second);
             }
             auto primitive_count = cmd.vertex_array->primitive_count;
             glDrawArrays(GL_TRIANGLES, 0, primitive_count * 3);

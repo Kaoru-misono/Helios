@@ -114,9 +114,13 @@ namespace Helios
         return shader;
     }
 
-     auto OpenGL_RHI::create_texture(const std::string& path) -> std::shared_ptr<RHI_Texture>
+    auto OpenGL_RHI::create_texture(Texture::Kind kind, std::vector<std::string> const& paths) -> std::shared_ptr<Texture>
     {
-        std::shared_ptr<RHI_Texture> texture = std::make_shared<OpenGL_Texture>(asset_dir + path);
+        std::shared_ptr<Texture> texture;
+        if (kind == Texture::Kind::TEX_2D && paths.size() == 1)
+            texture = OpenGL_Texture::load_2D_texture(paths[0], false);
+        else
+            LOG_INFO("Texture create failed.");
         return texture;
     }
 }

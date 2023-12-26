@@ -5,8 +5,8 @@ in vec3 v_Position;
 in vec3 v_Normal;
 in vec2 v_Texcoord;
 uniform vec3 camera_pos;
-uniform samplerCube skybox;
-uniform sampler2D cloth;
+//uniform samplerCube skybox;
+uniform sampler2D base_color;
 uniform int mesh_id;
 
 // from https://www.shadertoy.com/view/XlGcRh
@@ -65,20 +65,7 @@ vec3 map_uint_to_color(uint index)
 
 void main()
 {
-// 	vec3 I = normalize(v_Position - camera_pos);
-//  vec3 R = reflect(I, normalize(v_Normal));
-// 	vec3 light_color = texture(skybox, R).rgb;
-	float ratio = 1.00 / 1.52;
-    vec3 I = normalize(v_Position - camera_pos);
-    vec3 R = refract(I, normalize(v_Normal), ratio);
-	vec3 light_color = texture(skybox, R).rgb;
-// 	vec3 light_pos = vec3(0.0, 5.0, 5.0);
-// 	float ambient_strength = 0.1;
-// 	vec3 ambient = ambient_strength * light_color;
-// 	vec3 light_dir = normalize(light_pos - v_Position);
-// 	vec3 diffuse_color = light_color * max(0.0, dot(v_Normal, light_dir));
-// 	vec3 color = ambient + diffuse_color;
     vec3 color = map_uint_to_color(mesh_id);
-    color = texture(cloth, v_Texcoord).rgb;
+    color = texture(base_color, v_Texcoord).rgb;
 	FragColor = vec4(color, 1.0);
 }
