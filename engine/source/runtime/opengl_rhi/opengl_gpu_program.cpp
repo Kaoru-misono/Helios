@@ -24,37 +24,42 @@ namespace Helios
 
     auto OpenGL_GPU_Program::add_vertex_shader(const std::shared_ptr<RHI_Shader>& vertex_shader) -> void
     {
-        //vertex_shader_ = OpenGL_Shader::create_gl_shader(vertex_shader->get_shader_source(), vertex_shader->get_shader_type());
-        //OpenGL_Shader::compile(vertex_shader_, vertex_shader->get_shader_type());
         vertex_shader_ = std::move(vertex_shader);
     }
 
     auto OpenGL_GPU_Program::add_fragment_shader(const std::shared_ptr<RHI_Shader>& fragment_shader) -> void
     {
-        //fragment_shader_ = OpenGL_Shader::create_gl_shader(fragment_shader->get_shader_source(), fragment_shader->get_shader_type());
-        //OpenGL_Shader::compile(fragment_shader_, fragment_shader->get_shader_type());
         fragment_shader_ = std::move(fragment_shader);
+    }
+
+    auto OpenGL_GPU_Program::add_geometry_shader(const std::shared_ptr<RHI_Shader>& geometry_shader) -> void
+    {
+        geometry_shader_ = std::move(geometry_shader);
     }
 
     auto OpenGL_GPU_Program::link_shader() -> void
     {
         attach_shader(vertex_shader_);
         attach_shader(fragment_shader_);
+        if (geometry_shader_ != nullptr)
+            attach_shader(geometry_shader_);
         link();
         detach_shader(vertex_shader_);
         detach_shader(fragment_shader_);
+        if (geometry_shader_ != nullptr)
+            detach_shader(geometry_shader_);
         bind();
     }
 
 
     auto OpenGL_GPU_Program::attach_shader(const std::shared_ptr<RHI_Shader>& shader) -> void
     {
-        glAttachShader(resource, shader->get_shader_id());
+        glAttachShader(resource, shader->shader_id());
     }
 
     auto OpenGL_GPU_Program::detach_shader(const std::shared_ptr<RHI_Shader>& shader) -> void
     {
-        glDetachShader(resource, shader->get_shader_id());
+        glDetachShader(resource, shader->shader_id());
     }
 
     auto OpenGL_GPU_Program::link() ->void

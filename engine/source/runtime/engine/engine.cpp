@@ -60,10 +60,10 @@ namespace Helios
 			// positions   // texCoords
 			-1.0f,  1.0f,
 			-1.0f, -1.0f,
-			1.0f, -1.0f, 
+			1.0f, -1.0f,
 			-1.0f,  1.0f,
-			1.0f, -1.0f, 
-			1.0f,  1.0f 
+			1.0f, -1.0f,
+			1.0f,  1.0f
     	};
 
 		float quadTexcoord[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
@@ -124,30 +124,31 @@ namespace Helios
 
 		Assimp_Config config;
 		Assimp_Model bunny = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/bunny_1k.obj", config);
-		//Assimp_Model marry = Model("C:/Users/30931/Desktop/Helios/Helios/engine/asset/model/Alisya/pink.pmx");
-		// screen quad VAO
-		
-
-
+		Assimp_Model marry = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/Alisya/pink.pmx", config);
 
 		test_pass = std::make_unique<OpenGL_Pass>("test_pass");
 		test_pass->vertex_shader = m_rhi->create_shader( "shader/bunny_vert.glsl");
 		test_pass->fragment_shader = m_rhi->create_shader( "shader/bunny_frag.glsl");
+		// Expode geometry shader, you need to replace fragment shader v -> g if you want to open it
+		// test_pass->geometry_shader = m_rhi->create_shader( "shader/expode_geom.glsl");
 		test_pass->shader_process();
 		test_pass->set_uniform("skybox", 0);
-		auto bunny_vertex_info = bunny.meshes[0].vertex_info;
-		const int num_of_vertex = (int)(bunny_vertex_info.position.size());
-		auto bunny_position_1 = std::span<glm::vec3>(bunny_vertex_info.position);
-		auto bunny_normal_1 = std::span<glm::vec3>(bunny_vertex_info.normal);
+
 		{
-			RHI_Draw_Command cmd;
-			cmd.vertex_array = m_rhi->create_vertex_array();
-			auto& bunny_vertex_array = cmd.vertex_array;
-			bunny_vertex_array->primitive_count += bunny_position_1.size() / (size_t)3;
-			bunny_vertex_array->add_attributes({"POSITION", 3, bunny_position_1.size_bytes(), bunny_position_1.data()});
-			bunny_vertex_array->add_attributes({"NORMAL", 3, bunny_normal_1.size_bytes(), bunny_normal_1.data()});
-			bunny_vertex_array->create_buffer_and_set_data();
-			test_pass->queue.emplace_back(std::move(cmd));
+			for (auto mesh: marry.meshes) {
+				auto vertex_info = mesh.vertex_info;
+				const int num_of_vertex = (int)(vertex_info.position.size());
+				auto position = std::span<glm::vec3>(vertex_info.position);
+				auto normal = std::span<glm::vec3>(vertex_info.normal);
+				RHI_Draw_Command cmd;
+				cmd.vertex_array = m_rhi->create_vertex_array();
+				auto& vertex_array = cmd.vertex_array;
+				vertex_array->primitive_count += position.size() / (size_t)3;
+				vertex_array->add_attributes({"POSITION", 3, position.size_bytes(), position.data()});
+				vertex_array->add_attributes({"NORMAL", 3, normal.size_bytes(), normal.data()});
+				vertex_array->create_buffer_and_set_data();
+				test_pass->queue.emplace_back(std::move(cmd));
+			}
 		}
 
 		frame_buffer_pass = std::make_unique<OpenGL_Pass>("framebuffer_pass");
@@ -253,8 +254,9 @@ namespace Helios
 			glEnable(GL_DEPTH_TEST);
 
 			static glm::vec4 clear_color = glm::vec4(0.8f, 0.5f, 0.3f, 1.0f);
-			static glm::vec3 model_pos = glm::vec3(0.0f);
+			static glm::vec3 model_pos = glm::vec3(0.0f, -1.0f, 0.0f);
 			glm::mat4 model_mat = glm::translate(glm::mat4(1.0f), model_pos);
+			model_mat = glm::scale(model_mat, glm::vec3(0.1f));
 
 			ImGui::Begin("Settings");
 			ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
@@ -263,6 +265,7 @@ namespace Helios
 
 			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
 			test_pass->set_uniform("model_matrix", model_mat);
+			test_pass->set_uniform("time", (float)glfwGetTime());
 			// test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
 			// test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
 			test_pass->clear_state.clear_color = true;
@@ -274,7 +277,6 @@ namespace Helios
 			glEnable(GL_DEPTH_TEST);
 
         	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-			skybox_pass->gpu_program->bind();
 			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
 			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
 			skybox_pass->clear_state.allow_clear = false;
@@ -288,8 +290,7 @@ namespace Helios
 
 			frame_buffer_pass->clear_state.clear_color = true;
 			frame_buffer_pass->clear_state.clear_depth = false;
-			frame_buffer_pass->gpu_program->bind();
-			
+
 			//frame_buffer_pass->update();
 			frame_buffer_pass->update();
 			frame_buffer_pass->enable_depth_test = false;
@@ -310,7 +311,7 @@ namespace Helios
 
 	auto Helios_Engine::renderer_tick() -> void
 	{
-		
+
 		//test_pass->render();
 		//glDrawElements(GL_TRIANGLES, 3000, GL_UNSIGNED_INT, 0);
 	}

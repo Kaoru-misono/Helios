@@ -23,6 +23,8 @@ namespace Helios
         gpu_program->bind();
         gpu_program->add_vertex_shader(vertex_shader);
         gpu_program->add_fragment_shader(fragment_shader);
+        if (geometry_shader != nullptr)
+            gpu_program->add_geometry_shader(geometry_shader);
         gpu_program->link_shader();
     }
 
@@ -49,6 +51,7 @@ namespace Helios
             if (result)
                 glClear(result);
         }
+        gpu_program->bind();
 
     }
 

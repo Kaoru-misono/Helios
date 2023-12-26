@@ -41,11 +41,11 @@ namespace Helios
             //TODO: GL_TRUE and GL_FALSE need normalize to controll
             //TODO: calculate stride size of byte so you needn't times sizeof(xx)
             glVertexAttribPointer(
-                idx, 
-                attribute.element_size, 
-                GL_FLOAT, 
-                GL_FALSE, 
-                attribute.element_size * sizeof(float), 
+                idx,
+                attribute.element_size,
+                GL_FLOAT,
+                GL_FALSE,
+                attribute.element_size * sizeof(float),
                 (void*)(offset)
             );
             offset += attribute.buffer_offset;

@@ -16,6 +16,7 @@ namespace Helios
         auto bind() -> void override;
         auto add_vertex_shader(const std::shared_ptr<RHI_Shader>& vertex_shader) -> void override;
         auto add_fragment_shader(const std::shared_ptr<RHI_Shader>& fragment_shader) -> void override;
+        auto add_geometry_shader(const std::shared_ptr<RHI_Shader>& geometry_shader) -> void override;
         auto link_shader() -> void override;
         auto set_uniform(const std::string& name, std::any const& value) -> void override;
         auto id() -> unsigned int override { return resource; }
@@ -79,6 +80,7 @@ namespace Helios
 
         std::shared_ptr<RHI_Shader> vertex_shader_;
         std::shared_ptr<RHI_Shader> fragment_shader_;
+        std::shared_ptr<RHI_Shader> geometry_shader_;
         std::unordered_set<std::string> uniforms;
 
         GLuint resource;

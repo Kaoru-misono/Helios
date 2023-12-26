@@ -3,7 +3,6 @@ layout(location = 0) out vec4 FragColor;
 
 in vec3 v_Position;
 in vec3 v_Normal;
-in vec3 v_Color;
 
 uniform vec3 camera_pos;
 uniform samplerCube skybox;
@@ -26,5 +25,6 @@ void main()
 // 	vec3 color = ambient + diffuse_color;
 
 	FragColor = vec4(light_color, 1.0);
+	//FragColor = vec4(1.0);
 	//FragColor = texture(texture_samper, v_Texcoord);
 }

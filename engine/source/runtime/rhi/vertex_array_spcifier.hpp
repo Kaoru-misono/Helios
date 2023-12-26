@@ -15,8 +15,8 @@ namespace Helios
     struct Vertex_Attribute
     {
         std::string element_name{ "" };
-        unsigned int element_size{};
-        unsigned int buffer_offset{};
+        size_t element_size{};
+        size_t buffer_offset{};
         void* buffer{};
     };
 

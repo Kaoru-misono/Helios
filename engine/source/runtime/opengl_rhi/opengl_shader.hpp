@@ -11,17 +11,17 @@ namespace Helios
         OpenGL_Shader(const std::string& in_path);
         ~OpenGL_Shader() override;
 
-        auto get_shader_id()const -> unsigned int override;
-        auto get_shader_source()const -> std::string override;
-        auto get_shader_type()const -> Shader_Type override;
+        auto shader_id()const -> unsigned int override;
+        auto shader_source()const -> std::string override;
+        auto shader_type()const -> Shader_Type override;
 
         static auto create_gl_shader(const std::string& src, Shader_Type type) -> unsigned int;
         static auto compile(unsigned int shader, Shader_Type type) -> void;
         static auto read_file(const std::string& path, Shader_Type& type) -> std::string;
 
     private:
-        unsigned int shader_id;
-        std::string shader_source;
+        unsigned int shader_id_;
+        std::string shader_source_;
         Shader_Type type_;
     };
 }

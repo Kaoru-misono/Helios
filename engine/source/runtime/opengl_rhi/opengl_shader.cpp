@@ -6,24 +6,26 @@ namespace Helios
 {
     OpenGL_Shader::OpenGL_Shader(const std::string& in_path)
     {
-		shader_source = read_file(in_path, type_);
-		shader_id = create_gl_shader(shader_source, type_);
-		compile(shader_id, type_);
+		shader_source_ = read_file(in_path, type_);
+		shader_id_ = create_gl_shader(shader_source_, type_);
+		compile(shader_id_, type_);
     }
 
     OpenGL_Shader::~OpenGL_Shader()
     {
-		glDeleteShader(shader_id);
+		glDeleteShader(shader_id_);
     }
 
     auto OpenGL_Shader::read_file(const std::string& path, Shader_Type& type) -> std::string
     {
 		auto idx = path.find_last_of(".");
-		auto sub_str = path.substr(idx-4, 4);
+		auto sub_str = path.substr(idx - 4, 4);
 		if (sub_str == "vert")
 			type = Shader_Type::VERTEX_SHADER;
 		else if (sub_str == "frag")
 			type = Shader_Type::FRAGMENT_SHADER;
+		else if (sub_str == "geom")
+			type = Shader_Type::GEOMETRY_SHADER;
 		else
 			LOG_ERROR("shader path name is illegal !");
 	    std::string ShaderSrc;
@@ -53,9 +55,11 @@ namespace Helios
 		unsigned int shader;
 	    // Create an empty vertex shader handle
 		if(type == Shader_Type::VERTEX_SHADER)
-	    shader = glCreateShader(GL_VERTEX_SHADER);
+	    	shader = glCreateShader(GL_VERTEX_SHADER);
 		else if(type == Shader_Type::FRAGMENT_SHADER)
-	    shader = glCreateShader(GL_FRAGMENT_SHADER);
+	    	shader = glCreateShader(GL_FRAGMENT_SHADER);
+		else if (type == Shader_Type::GEOMETRY_SHADER)
+			shader = glCreateShader(GL_GEOMETRY_SHADER);
 
 	    // Send the vertex shader source code to GL
 	    // Note that std::string's .c_str is NULL character terminated.
@@ -72,7 +76,10 @@ namespace Helios
 	    // Compile the shader
 	    glCompileShader(shader);
 
-		std::string shader_type = type == Shader_Type::VERTEX_SHADER ? "Vertex shader" : "Fragment shader";
+		auto shader_type =
+			type == Shader_Type::VERTEX_SHADER ? "Vertex shader" :
+			type == Shader_Type::VERTEX_SHADER ? "Fragment shader" :
+			"Geometry shader";
 	    GLint is_compiled = 0;
 	    glGetShaderiv(shader, GL_COMPILE_STATUS, &is_compiled);
 	    if (is_compiled == GL_FALSE)
@@ -96,18 +103,18 @@ namespace Helios
 		//LOG_TRACE(shader_type + " compile succeed!");
     }
 
-	auto OpenGL_Shader::get_shader_id()const -> unsigned int
+	auto OpenGL_Shader::shader_id()const -> unsigned int
 	{
-		return shader_id;
+		return shader_id_;
 	}
 
 
-	auto OpenGL_Shader::get_shader_source()const -> std::string
+	auto OpenGL_Shader::shader_source()const -> std::string
 	{
-		return shader_source;
+		return shader_source_;
 	}
 
-    auto OpenGL_Shader::get_shader_type()const -> Shader_Type
+    auto OpenGL_Shader::shader_type()const -> Shader_Type
 	{
 		return type_;
 	}

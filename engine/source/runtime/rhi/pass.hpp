@@ -28,6 +28,7 @@ namespace Helios
         std::unique_ptr<RHI_GPU_Program> gpu_program{};
         std::shared_ptr<RHI_Shader> vertex_shader{};
         std::shared_ptr<RHI_Shader> fragment_shader{};
+        std::shared_ptr<RHI_Shader> geometry_shader{};
         std::string name{};
     protected:
         std::unordered_map<std::string, std::any> uniforms{};
