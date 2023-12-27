@@ -5,7 +5,7 @@ in vec3 v_Position;
 in vec3 v_Normal;
 in vec2 v_Texcoord;
 uniform vec3 camera_pos;
-//uniform samplerCube skybox;
+uniform vec3 light_dir;
 uniform sampler2D base_color;
 uniform int mesh_id;
 
@@ -67,5 +67,9 @@ void main()
 {
     vec3 color = map_uint_to_color(mesh_id);
     color = texture(base_color, v_Texcoord).rgb;
+    vec3 diffuse_color = color * max(0.0, dot(v_Normal, light_dir)) * 0.1;
+    vec3 view_dir = camera_pos - v_Position;
+    vec3 half_dir = normalize(view_dir + light_dir);
+    vec3 specular_color = vec3(1.0) * max(0.0, dot(v_Normal, half_dir)) * 0.01;
 	FragColor = vec4(color, 1.0);
 }

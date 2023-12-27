@@ -75,7 +75,7 @@ namespace Helios
 			1.0f, 1.0f
     	};
 
-		float skyboxVertices[] = {
+		float box_vertices[] = {
 			// positions
 			-1.0f,  1.0f, -1.0f,
 			-1.0f, -1.0f, -1.0f,
@@ -165,7 +165,6 @@ namespace Helios
 			{20, eye_tex},
 			{21, emote_tex},
 		};
-		auto test_array = m_rhi->create_vertex_array();
 		test_pass = std::make_unique<OpenGL_Pass>("test_pass");
 		test_pass->vertex_shader = m_rhi->create_shader( "shader/alisya_vert.glsl");
 		test_pass->fragment_shader = m_rhi->create_shader( "shader/alisya_frag.glsl");
@@ -173,6 +172,10 @@ namespace Helios
 		// test_pass->geometry_shader = m_rhi->create_shader( "shader/expode_geom.glsl");
 		test_pass->shader_process();
 
+		auto box_pass = std::make_shared<OpenGL_Pass>("box_pass");
+		box_pass->vertex_shader = m_rhi->create_shader( "shader/simple_vert.glsl");
+		box_pass->fragment_shader = m_rhi->create_shader( "shader/simple_frag.glsl");
+		box_pass->shader_process();
 
 		frame_buffer_pass = std::make_unique<OpenGL_Pass>("framebuffer_pass");
 		frame_buffer_pass->vertex_shader = m_rhi->create_shader( "shader/framebuffer-vert.glsl");
@@ -200,7 +203,7 @@ namespace Helios
 			cmd.vertex_array = m_rhi->create_vertex_array();
 			auto& skybox_array = cmd.vertex_array;
 			skybox_array->primitive_count = 12;
-			skybox_array->add_attributes({"POSITION", 3, sizeof(skyboxVertices), &skyboxVertices});
+			skybox_array->add_attributes({"POSITION", 3, sizeof(box_vertices), &box_vertices});
 			skybox_array->create_buffer_and_set_data();
 			cmd.uniform.try_emplace("skybox", cubemapTexture);
 			cmd.sampler.try_emplace("skybox", Texture_Sampler{});
@@ -236,21 +239,21 @@ namespace Helios
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-			//framebuffer->bind();
-			//glActiveTexture(GL_TEXTURE0);
-        	//glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-			renderer_tick();
+			framebuffer->bind();
 			glEnable(GL_DEPTH_TEST);
 
 			static glm::vec4 clear_color = glm::vec4(0.8f, 0.5f, 0.3f, 1.0f);
 			static glm::vec3 model_pos = glm::vec3(0.0f, -1.0f, 0.0f);
+			static glm::vec3 box_pos = glm::vec3(0.0f, -1.1f, -0.6f);
 			glm::mat4 model_mat = glm::translate(glm::mat4(1.0f), model_pos);
 			model_mat = glm::scale(model_mat, glm::vec3(0.1f));
 
 			ImGui::Begin("Settings");
 			ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
 			ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
+			ImGui::DragFloat3("box_pos", glm::value_ptr(box_pos), 0.01f);
 			ImGui::End();
+
 			{
 				test_pass->queue.clear();
 				int mesh_id = 0;
@@ -281,6 +284,7 @@ namespace Helios
 			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
 			test_pass->set_uniform("model_matrix", model_mat);
 			test_pass->set_uniform("time", (float)glfwGetTime());
+			test_pass->set_uniform("light_dir", glm::vec3(0.0f, 1.0f, 1.0f));
 			// test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
 			// test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
 			test_pass->clear_state.clear_color = true;
@@ -288,6 +292,27 @@ namespace Helios
 			test_pass->clear_state.clear_depth = true;
 			test_pass->update();
 			test_pass->render();
+
+			{
+				box_pass->queue.clear();
+				RHI_Draw_Command box_cmd;
+				auto box_position = std::span<float>(box_vertices);
+				box_cmd.vertex_array = m_rhi->create_vertex_array();
+				auto& vertex_array = box_cmd.vertex_array;
+				vertex_array->primitive_count += 12;
+				vertex_array->add_attributes({"POSITION", 3, box_position.size_bytes(), box_position.data()});
+				vertex_array->create_buffer_and_set_data();
+				glm::mat4 box_model_mat = glm::translate(glm::mat4(1.0f), box_pos);
+				box_model_mat = glm::scale(box_model_mat, glm::vec3(2.0f, 0.1f, 2.0f));
+				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
+				box_pass->queue.emplace_back(std::move(box_cmd));
+			}
+			box_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+			box_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+			box_pass->clear_state.allow_clear = false;
+			box_pass->update();
+			std::cout << "box cmd: " << box_pass->queue.size() << std::endl;
+			box_pass->render();
 			// draw skybox as last
 			glEnable(GL_DEPTH_TEST);
         	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -298,14 +323,14 @@ namespace Helios
         	// skybox cube
         	skybox_pass->render();
         	glDepthFunc(GL_LESS);
-			//framebuffer->unbind();
+			framebuffer->unbind();
 
-			//frame_buffer_pass->clear_state.clear_color = true;
-			//frame_buffer_pass->clear_state.clear_depth = false;
-			//frame_buffer_pass->update();
-			//frame_buffer_pass->enable_depth_test = false;
-			//glBindTexture(GL_TEXTURE_2D, framebuffer->texColorBuffer);
-			//frame_buffer_pass->render();
+			frame_buffer_pass->clear_state.clear_color = true;
+			frame_buffer_pass->clear_state.clear_depth = false;
+			frame_buffer_pass->update();
+			frame_buffer_pass->enable_depth_test = false;
+			glBindTexture(GL_TEXTURE_2D, framebuffer->texColorBuffer);
+			frame_buffer_pass->render();
 
 
 			context.m_imgui_layer->render();
@@ -322,7 +347,5 @@ namespace Helios
 	auto Helios_Engine::renderer_tick() -> void
 	{
 
-		//test_pass->render();
-		//glDrawElements(GL_TRIANGLES, 3000, GL_UNSIGNED_INT, 0);
 	}
 }
