@@ -1,31 +1,11 @@
 #include "opengl_framebuffer.hpp"
+#include "opengl_texture.hpp"
 #include "logger/logger_marco.hpp"
 namespace Helios
 {
-    OpenGL_Framebuffer::OpenGL_Framebuffer(glm::vec2 buffer_size)
+    OpenGL_Framebuffer::OpenGL_Framebuffer()
     {
 		glGenFramebuffers(1, &resource);
-		glBindFramebuffer(GL_FRAMEBUFFER, resource);
-
-		glGenTextures(1, &texColorBuffer);
-		glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, buffer_size.x, buffer_size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
-
-		glGenRenderbuffers(1, &rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, buffer_size.x, buffer_size.y);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    		LOG_ERROR("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     OpenGL_Framebuffer::~OpenGL_Framebuffer()
@@ -42,4 +22,25 @@ namespace Helios
     {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
+
+	auto OpenGL_Framebuffer::attach() -> void
+	{
+		bind();
+		int idx = 0;
+		for (auto& color: colors) {
+			auto texture = std::reinterpret_pointer_cast<OpenGL_Texture>(color.texture);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + idx, GL_TEXTURE_2D, texture->id(), 0);
+			idx++;
+		}
+		auto depth_texture = std::reinterpret_pointer_cast<OpenGL_Texture>(depth.texture);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture->id(), 0);
+
+		if (colors.size() == 0) {
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+		}
+		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    		LOG_ERROR("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+		unbind();
+	}
 }

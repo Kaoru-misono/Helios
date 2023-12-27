@@ -24,10 +24,9 @@ namespace Helios
         glBindTexture(gl_kind, 0);
     }
 
-    auto OpenGL_Texture::set_sampler(Texture_Sampler const& sampler, int texture_unit) const -> void
+    auto OpenGL_Texture::set_sampler(Texture_Sampler const& sampler) const -> void
     {
         bind();
-        glActiveTexture(GL_TEXTURE0 + texture_unit);
 		glTexParameteri(gl_kind, GL_TEXTURE_WRAP_S, to_gl_enum(sampler.warp_s));
 		glTexParameteri(gl_kind, GL_TEXTURE_WRAP_T, to_gl_enum(sampler.warp_t));
         if (sampler.warp_r != Texture_Sampler::Warp::none)
@@ -46,6 +45,7 @@ namespace Helios
         texture->images.emplace_back(image);
         auto channel = image->channel();
         auto format = channel == 1 ? GL_RED : channel == 3 ? GL_RGB : GL_RGBA;
+        texture->format = channel == 1 ? Texture::Format::r8 : channel == 3 ? Texture::Format::rgb8 : Texture::Format::rgba8;
         glTexImage2D(texture->gl_kind, 0, format, image->width(), image->height(), 0, format, GL_UNSIGNED_BYTE, image->data());
 		glGenerateMipmap(texture->gl_kind);
         texture->unbind();
@@ -74,6 +74,19 @@ namespace Helios
 			);
             face++;
         }
+        texture->unbind();
+        return texture;
+    }
+
+    auto OpenGL_Texture::create_depth_map_texture() -> std::shared_ptr<OpenGL_Texture>
+    {
+        auto texture = std::make_shared<OpenGL_Texture>();
+        texture->kind = Texture::Kind::TEX_2D;
+        texture->format = Texture::Format::depth24;
+        texture->gl_kind = GL_TEXTURE_2D;
+        texture->bind();
+        // TODO: 1024 should be changeable
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
         texture->unbind();
         return texture;
     }

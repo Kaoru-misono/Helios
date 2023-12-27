@@ -4,6 +4,7 @@
 #include "opengl_vertex_array.hpp"
 #include "opengl_shader.hpp"
 #include "opengl_texture.hpp"
+#include "opengl_framebuffer.hpp"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <fstream>
@@ -114,15 +115,23 @@ namespace Helios
         return shader;
     }
 
-    auto OpenGL_RHI::create_texture(Texture::Kind kind, std::vector<std::string> const& paths, bool should_flip) -> std::shared_ptr<Texture>
+    auto OpenGL_RHI::create_texture(Texture::Kind kind, std::vector<std::string> const& paths, Texture::Format format, bool should_flip) -> std::shared_ptr<Texture>
     {
         std::shared_ptr<Texture> texture;
         if (kind == Texture::Kind::TEX_2D && paths.size() == 1)
             texture = OpenGL_Texture::load_2D_texture(paths[0], should_flip);
+        else if (kind == Texture::Kind::TEX_2D && format == Texture::Format::depth24)
+            texture = OpenGL_Texture::create_depth_map_texture();
         else if (kind == Texture::Kind::TEX_CUBE)
             texture = OpenGL_Texture::load_cube_map_texture(paths, should_flip);
         else
             LOG_INFO("Texture create failed.");
         return texture;
+    }
+
+    auto OpenGL_RHI::create_framebuffer() -> std::shared_ptr<RHI_Framebuffer>
+    {
+        auto framebuffer = std::make_shared<OpenGL_Framebuffer>();
+        return framebuffer;
     }
 }

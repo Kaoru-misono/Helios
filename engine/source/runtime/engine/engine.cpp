@@ -214,7 +214,16 @@ namespace Helios
 		}
 
 		context.m_main_camera->set_camera_parameters(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-		auto framebuffer = std::make_unique<OpenGL_Framebuffer>(glm::vec2{Window::instance().get_width(),Window::instance().get_height()});
+		//auto framebuffer = std::make_unique<OpenGL_Framebuffer>(glm::vec2{Window::instance().get_width(),Window::instance().get_height()});
+		auto depth_texture = m_rhi->create_texture(Texture::Kind::TEX_2D, {""}, Texture::Format::depth24);
+		Texture_Sampler sampler;
+		sampler.min_filter = Texture_Sampler::Filter::nearest;
+		sampler.mag_filter = Texture_Sampler::Filter::nearest;
+		depth_texture->set_sampler(sampler);
+		auto frame_buffer = m_rhi->create_framebuffer();
+		frame_buffer->depth.texture = depth_texture;
+		frame_buffer->attach();
+
 
 		// UBO
 		GLuint b_index = glGetUniformBlockIndex(test_pass->gpu_program->id(), "transforms");
@@ -239,7 +248,7 @@ namespace Helios
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-			framebuffer->bind();
+			//framebuffer->bind();
 			glEnable(GL_DEPTH_TEST);
 
 			static glm::vec4 clear_color = glm::vec4(0.8f, 0.5f, 0.3f, 1.0f);
@@ -311,7 +320,6 @@ namespace Helios
 			box_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
 			box_pass->clear_state.allow_clear = false;
 			box_pass->update();
-			std::cout << "box cmd: " << box_pass->queue.size() << std::endl;
 			box_pass->render();
 			// draw skybox as last
 			glEnable(GL_DEPTH_TEST);
@@ -323,14 +331,14 @@ namespace Helios
         	// skybox cube
         	skybox_pass->render();
         	glDepthFunc(GL_LESS);
-			framebuffer->unbind();
+			//framebuffer->unbind();
 
-			frame_buffer_pass->clear_state.clear_color = true;
-			frame_buffer_pass->clear_state.clear_depth = false;
-			frame_buffer_pass->update();
-			frame_buffer_pass->enable_depth_test = false;
-			glBindTexture(GL_TEXTURE_2D, framebuffer->texColorBuffer);
-			frame_buffer_pass->render();
+			// frame_buffer_pass->clear_state.clear_color = true;
+			// frame_buffer_pass->clear_state.clear_depth = false;
+			// frame_buffer_pass->update();
+			// frame_buffer_pass->enable_depth_test = false;
+			// glBindTexture(GL_TEXTURE_2D, framebuffer->texColorBuffer);
+			// frame_buffer_pass->render();
 
 
 			context.m_imgui_layer->render();

@@ -1,4 +1,5 @@
 #pragma once
+#include "resource/image.hpp"
 namespace Helios
 {
     struct Texture_Sampler
@@ -48,11 +49,12 @@ namespace Helios
             rgba8,
             depth24,
         };
+        std::vector<std::shared_ptr<Image>> images;
         Kind kind{Kind::TEX_2D};
         Format format{Format::rgba8};
         virtual ~Texture() {}
         virtual auto bind() const -> void = 0;
         virtual auto unbind() const -> void = 0;
-        virtual auto set_sampler(Texture_Sampler const& sampler, int texture_unit) const -> void = 0;
+        virtual auto set_sampler(Texture_Sampler const& sampler) const -> void = 0;
     };
 }

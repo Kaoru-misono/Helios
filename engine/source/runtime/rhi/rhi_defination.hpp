@@ -46,13 +46,14 @@ namespace Helios
     {
         struct Attachment
         {
-            std::unique_ptr<Texture> texture;
+            std::shared_ptr<Texture> texture;
         };
         std::vector<Attachment> colors;
         Attachment depth;
         virtual ~RHI_Framebuffer() {}
         virtual auto bind() -> void = 0;
         virtual auto unbind() -> void = 0;
+        virtual auto attach() -> void = 0;
     };
 
 

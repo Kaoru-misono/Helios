@@ -67,7 +67,8 @@ namespace Helios
                     auto texture = std::any_cast<std::shared_ptr<Texture>>(uniform.second);
                     gpu_program->set_uniform(uniform.first, texture_unit);
                     auto& sampler = cmd.sampler[uniform.first];
-                    texture->set_sampler(sampler, texture_unit);
+                    glActiveTexture(GL_TEXTURE0 + texture_unit);
+                    texture->set_sampler(sampler);
                     texture_unit++;
                 }
                 else
