@@ -12,9 +12,9 @@ namespace Helios
     {
         m_logger = std::make_shared<Logger>();
 
-        m_window = std::make_shared<Window>();
+
         Window_Info info;
-        m_window->init(info);
+        Window::instance().init(info);
 
         m_imgui_layer = std::make_shared<ImGui_Layer>();
         m_imgui_layer->init();
@@ -25,10 +25,8 @@ namespace Helios
     auto Global_Context::shutdown_context() -> void
     {
         m_logger.reset();
-
-        m_window.reset();
-
         m_imgui_layer->destroy();
         m_imgui_layer.reset();
+        Window::instance().~Window();
     }
 }

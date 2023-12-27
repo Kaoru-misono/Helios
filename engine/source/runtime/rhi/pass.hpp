@@ -1,5 +1,6 @@
 #pragma once
 #include "rhi/rhi_defination.hpp"
+#include "rhi/texture.hpp"
 #include "draw_command.hpp"
 #include "render_state.hpp"
 #include "../pre-compile.h"
@@ -31,6 +32,8 @@ namespace Helios
         std::shared_ptr<RHI_Shader> geometry_shader{};
         std::string name{};
     protected:
+        //will be set once and cross every frame
         std::unordered_map<std::string, std::any> uniforms{};
+        std::unordered_map<std::string, Texture_Sampler> samplers{};
     };
 }

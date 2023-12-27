@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include "rhi/texture.hpp"
+#include "rhi/draw_command.hpp"
 namespace Helios
 {
     auto inline to_gl_enum(Texture_Sampler::Filter filter) -> GLenum
@@ -26,6 +27,19 @@ namespace Helios
             case Texture_Sampler::Warp::clamp_to_border: return GL_CLAMP_TO_BORDER;
             case Texture_Sampler::Warp::mirrored_repeat: return GL_MIRRORED_REPEAT;
             case Texture_Sampler::Warp::mirror_calmp_to_edge: return GL_MIRROR_CLAMP_TO_EDGE;
+            default: break;
+        }
+        return GL_FALSE;
+    }
+
+    auto inline to_gl_enum(Primitive primitive) -> GLenum
+    {
+        switch (primitive) {
+            case Primitive::trianges: return GL_TRIANGLES;
+            case Primitive::triangle_strip: return GL_TRIANGLE_STRIP;
+            case Primitive::lines: return GL_LINE;
+            case Primitive::line_loop: return GL_LINE_LOOP;
+            case Primitive::line_strip: return GL_LINE_STRIP;
             default: break;
         }
         return GL_FALSE;

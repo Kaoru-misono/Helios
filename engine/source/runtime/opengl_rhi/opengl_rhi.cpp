@@ -29,7 +29,7 @@ namespace Helios
 
         auto asset_dir = source_dir + "Helios/engine/asset/";
     }
-    
+
     OpenGL_RHI::~OpenGL_RHI()
     {
 
@@ -64,7 +64,7 @@ namespace Helios
     {
         // Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForOpenGL(window_, true);
-		ImGui_ImplOpenGL3_Init("#version 460");	
+		ImGui_ImplOpenGL3_Init("#version 460");
     }
 
     auto OpenGL_RHI::create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag) -> std::shared_ptr<RHI_Buffer>
@@ -97,7 +97,7 @@ namespace Helios
             //std::cout << size << std::endl;
             buffer = std::make_shared<OpenGL_Buffer>(buffer_type, flag, size, data_array);
         }
-        
+
 
         return buffer;
     }
@@ -114,11 +114,13 @@ namespace Helios
         return shader;
     }
 
-    auto OpenGL_RHI::create_texture(Texture::Kind kind, std::vector<std::string> const& paths) -> std::shared_ptr<Texture>
+    auto OpenGL_RHI::create_texture(Texture::Kind kind, std::vector<std::string> const& paths, bool should_flip) -> std::shared_ptr<Texture>
     {
         std::shared_ptr<Texture> texture;
         if (kind == Texture::Kind::TEX_2D && paths.size() == 1)
-            texture = OpenGL_Texture::load_2D_texture(paths[0], false);
+            texture = OpenGL_Texture::load_2D_texture(paths[0], should_flip);
+        else if (kind == Texture::Kind::TEX_CUBE)
+            texture = OpenGL_Texture::load_cube_map_texture(paths, should_flip);
         else
             LOG_INFO("Texture create failed.");
         return texture;

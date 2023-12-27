@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include<spdlog/spdlog.h>
+#include "core/singleton.hpp"
 
 namespace Helios
 {
@@ -14,7 +15,7 @@ namespace Helios
         const char* title{ "Helios" };
     };
 
-    class Window
+    struct Window: Singleton<Window>
     {
     public:
         Window() = default;
@@ -127,12 +128,13 @@ namespace Helios
             {
                 app->m_width  = width;
                 app->m_height = height;
+                app->onWindowSize(width, height);
             }
         }
 
         static auto framebuffer_size_callback(GLFWwindow* window, int width, int height)
         {
-             glViewport(0, 0, width, height);
+            glViewport(0, 0, width, height);
         }
 
         static void window_close_callback(GLFWwindow* window) { glfwSetWindowShouldClose(window, true); }

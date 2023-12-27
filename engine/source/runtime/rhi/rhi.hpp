@@ -19,7 +19,7 @@ namespace Helios
         virtual auto create_buffer(RHI_Buffer_Create_info& buffer_create_info, RHI_Usage_Flag flag) -> std::shared_ptr<RHI_Buffer> = 0;
         virtual auto create_vertex_array() -> std::shared_ptr<RHI_Vertex_Array> = 0;
         virtual auto create_shader(const std::string& path) -> std::shared_ptr<RHI_Shader> = 0;
-        virtual auto create_texture(Texture::Kind kind, std::vector<std::string> const& paths) -> std::shared_ptr<Texture> = 0;
+        virtual auto create_texture(Texture::Kind kind, std::vector<std::string> const& paths, bool should_flip = false) -> std::shared_ptr<Texture> = 0;
         //virtual auto
     private:
     };

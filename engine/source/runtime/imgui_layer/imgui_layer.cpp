@@ -5,7 +5,7 @@
 namespace Helios
 {
     auto ImGui_Layer::init() -> void
-    {   
+    {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -49,7 +49,7 @@ namespace Helios
     auto ImGui_Layer::render() -> void
     {
         ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2((float)g_global_context.m_window->get_width(), (float)g_global_context.m_window->get_height());
+		io.DisplaySize = ImVec2((float)Window::instance().get_width(), (float)Window::instance().get_height());
 
         //Rendering
 		ImGui::Render();
@@ -63,5 +63,5 @@ namespace Helios
 			glfwMakeContextCurrent(backup_current_context);
 		}
     }
-    
+
 }

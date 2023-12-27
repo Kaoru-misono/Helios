@@ -15,17 +15,17 @@ namespace Helios
 
     auto Input_Manager::initialize() -> void
     {
-        g_global_context.m_window->registerOnCursorPosFunc(
+        Window::instance().registerOnCursorPosFunc(
             std::bind(&Input_Manager::onCursorPos, this, std::placeholders::_1, std::placeholders::_2));
-        g_global_context.m_window->registerOnCursorEnterFunc(
+        Window::instance().registerOnCursorEnterFunc(
             std::bind(&Input_Manager::onCursorEnter, this, std::placeholders::_1));
-        g_global_context.m_window->registerOnScrollFunc(
+        Window::instance().registerOnScrollFunc(
             std::bind(&Input_Manager::onScroll, this, std::placeholders::_1, std::placeholders::_2));
-        g_global_context.m_window->registerOnMouseButtonFunc(
+        Window::instance().registerOnMouseButtonFunc(
             std::bind(&Input_Manager::onMouseButtonClicked, this, std::placeholders::_1, std::placeholders::_2));
-        g_global_context.m_window->registerOnWindowCloseFunc(
+        Window::instance().registerOnWindowCloseFunc(
             std::bind(&Input_Manager::onWindowClosed, this));
-        g_global_context.m_window->registerOnKeyFunc(std::bind(&Input_Manager::onKey,
+        Window::instance().registerOnKeyFunc(std::bind(&Input_Manager::onKey,
                                                                              this,
                                                                              std::placeholders::_1,
                                                                              std::placeholders::_2,
@@ -66,7 +66,7 @@ namespace Helios
 
         //TODO: remove this
         if ((unsigned int)Control_Command::exit & m_process_command)
-        g_global_context.m_window->close_window();
+        Window::instance().close_window();
 
         if(camera_relative_pos != glm::vec3(0.0f))
         camera->move(camera_relative_pos);
@@ -143,15 +143,15 @@ namespace Helios
     {
         //LOG_INFO("mouse position: {0}, {1}", xpos, ypos);
         float angularVelocity =180.0f / 1600.f; // 180 degrees while moving full screen
-        if (g_global_context.m_window->isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
+        if (Window::instance().isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
         {
-            glfwSetInputMode(g_global_context.m_window->get_window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetInputMode(Window::instance().get_window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             //ypos decrease when mouse up
             g_global_context.m_main_camera->rotate(glm::vec2(xpos - m_mouse_x, ypos - m_mouse_y) * angularVelocity);
         }
         else
         {
-            glfwSetInputMode(g_global_context.m_window->get_window(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glfwSetInputMode(Window::instance().get_window(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
 
         m_mouse_x = xpos;
@@ -168,7 +168,7 @@ namespace Helios
 
     auto Input_Manager::onScroll(double xoffset, double yoffset) -> void
     {
-        if (g_global_context.m_window->isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
+        if (Window::instance().isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
             {
                 if (yoffset > 0)
                 {

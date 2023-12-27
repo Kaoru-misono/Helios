@@ -2,27 +2,30 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include "logger/logger_marco.hpp"
-
+#include "window/window.hpp"
 namespace Helios::Scene
 {
     Camera::Camera()
     {
+        Window::instance().registerOnWindowSizeFunc(
+            [&](int width, int height) {
+                set_aspect((float)width/(float)height);
+            });
     }
-
     auto Camera::update() -> void
     {
-        if (need_update_matrix_)
+        if (matrix_dirty)
         {
             calculate_view_martix();
             calculate_proj_matrix();
-            need_update_matrix_ = false;
+            matrix_dirty = false;
         }
     }
 
     auto Camera::move(glm::vec3 delta) -> void
     {
         eye_position_ += delta;
-        need_update_matrix_ = true;
+        matrix_dirty = true;
     }
 
     auto Camera::rotate(glm::vec2 delta) -> void
@@ -50,7 +53,7 @@ namespace Helios::Scene
         // > 0 = zoom in (decrease FOV by <offset> angles)
         fov_ = std::clamp(fov_ - offset, MIN_FOV, MAX_FOV);
         //LOG_INFO("fov: {0}", fov_);
-        need_update_matrix_ = true;
+        matrix_dirty = true;
     }
 
     auto Camera::set_camera_parameters(
@@ -63,7 +66,7 @@ namespace Helios::Scene
         up_ = up;
         look_dir_ = target - eye_position;
 
-        need_update_matrix_ = true;
+        matrix_dirty = true;
     }
 
     auto Camera::calculate_view_martix() -> void

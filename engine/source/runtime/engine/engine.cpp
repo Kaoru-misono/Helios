@@ -47,7 +47,7 @@ namespace Helios
 		context.start_context();
 
 		m_rhi = std::make_shared<OpenGL_RHI>();
-		m_rhi->init(*context.m_window);
+		m_rhi->init(Window::instance());
 		m_rhi->create_platform_context();
 		LOG_INFO("Welcome to Helios !");
 		m_rhi->init_imgui_for_platform();
@@ -131,6 +131,16 @@ namespace Helios
 		auto hair_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/hair.png"});
 		auto emote_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/emote.png"});
 		auto pink_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/nk.png"});
+		std::vector<std::string> faces
+		{
+			"D:/github/Helios/engine/asset/texture/sky-box/right.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/left.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/top.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/bottom.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/front.jpg",
+			"D:/github/Helios/engine/asset/texture/sky-box/back.jpg"
+		};
+		auto cubemapTexture = m_rhi->create_texture(Texture::Kind::TEX_CUBE, faces);
 		std::unordered_map<int, std::shared_ptr<Texture>> material_map{
 			{0, cloth_tex},
 			{1, cloth_tex},
@@ -153,7 +163,7 @@ namespace Helios
 			{18, face_tex},
 			{19, face_tex},
 			{20, eye_tex},
-			{21, eye_tex},
+			{21, emote_tex},
 		};
 		auto test_array = m_rhi->create_vertex_array();
 		test_pass = std::make_unique<OpenGL_Pass>("test_pass");
@@ -162,8 +172,7 @@ namespace Helios
 		// Expode geometry shader, you need to replace fragment shader v -> g if you want to open it
 		// test_pass->geometry_shader = m_rhi->create_shader( "shader/expode_geom.glsl");
 		test_pass->shader_process();
-		//test_pass->set_uniform("skybox", 0);
-	
+
 
 		frame_buffer_pass = std::make_unique<OpenGL_Pass>("framebuffer_pass");
 		frame_buffer_pass->vertex_shader = m_rhi->create_shader( "shader/framebuffer-vert.glsl");
@@ -193,91 +202,16 @@ namespace Helios
 			skybox_array->primitive_count = 12;
 			skybox_array->add_attributes({"POSITION", 3, sizeof(skyboxVertices), &skyboxVertices});
 			skybox_array->create_buffer_and_set_data();
+			cmd.uniform.try_emplace("skybox", cubemapTexture);
+			cmd.sampler.try_emplace("skybox", Texture_Sampler{});
+			cmd.sampler["skybox"].warp_s = Texture_Sampler::Warp::clamp_to_edge;
+			cmd.sampler["skybox"].warp_t = Texture_Sampler::Warp::clamp_to_edge;
+			cmd.sampler["skybox"].warp_r = Texture_Sampler::Warp::clamp_to_edge;
 			skybox_pass->queue.emplace_back(std::move(cmd));
 		}
 
 		context.m_main_camera->set_camera_parameters(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-		auto framebuffer = std::make_unique<OpenGL_Framebuffer>(glm::vec2{context.m_window->get_width(), context.m_window->get_height()});
-
-		auto loadTexture = [](char const * path) -> unsigned int
-		{
-			unsigned int textureID;
-			glGenTextures(1, &textureID);
-
-			int width, height, nrComponents;
-			unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-			if (data)
-			{
-				GLenum format;
-				if (nrComponents == 1)
-					format = GL_RED;
-				else if (nrComponents == 3)
-					format = GL_RGB;
-				else if (nrComponents == 4)
-					format = GL_RGBA;
-
-				glBindTexture(GL_TEXTURE_2D, textureID);
-				glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-				glGenerateMipmap(GL_TEXTURE_2D);
-
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-				stbi_image_free(data);
-			}
-			else
-			{
-				std::cout << "Texture failed to load at path: " << path << std::endl;
-				stbi_image_free(data);
-			}
-
-			return textureID;
-		};
-		auto loadCubemap = [](std::vector<std::string> faces) -> unsigned int
-		{
-			unsigned int textureID;
-			glGenTextures(1, &textureID);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-			int width, height, nrChannels;
-			for (unsigned int i = 0; i < faces.size(); i++)
-			{
-				unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-				if (data)
-				{
-					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-								0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-					);
-					stbi_image_free(data);
-				}
-				else
-				{
-					std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-					stbi_image_free(data);
-				}
-			}
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-			return textureID;
-		};
-
-		std::vector<std::string> faces
-		{
-			"D:/github/Helios/engine/asset/texture/sky-box/right.jpg",
-			"D:/github/Helios/engine/asset/texture/sky-box/left.jpg",
-			"D:/github/Helios/engine/asset/texture/sky-box/top.jpg",
-			"D:/github/Helios/engine/asset/texture/sky-box/bottom.jpg",
-			"D:/github/Helios/engine/asset/texture/sky-box/front.jpg",
-			"D:/github/Helios/engine/asset/texture/sky-box/back.jpg"
-		};
-		unsigned int cubemapTexture = loadCubemap(faces);
-		//auto cloth_tex = loadTexture("D:/github/Helios/engine/asset/model/Alisya/cloth.png");
+		auto framebuffer = std::make_unique<OpenGL_Framebuffer>(glm::vec2{Window::instance().get_width(),Window::instance().get_height()});
 
 		// UBO
 		GLuint b_index = glGetUniformBlockIndex(test_pass->gpu_program->id(), "transforms");
@@ -289,7 +223,7 @@ namespace Helios
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 0, transform_ubo, 0, 2 * sizeof(glm::mat4));
 
-		while (!context.m_window->should_close())
+		while (!Window::instance().should_close())
 		{
 			m_input_manager->process_control_command();
 			context.m_imgui_layer->update();
@@ -302,7 +236,7 @@ namespace Helios
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-			framebuffer->bind();
+			//framebuffer->bind();
 			//glActiveTexture(GL_TEXTURE0);
         	//glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 			renderer_tick();
@@ -339,7 +273,6 @@ namespace Helios
 					std::cout << mesh_id << std::endl;
 				cmd.uniform.try_emplace("base_color", material_map[mesh_id]);
 				Texture_Sampler sampler;
-				sampler.min_filter = Texture_Sampler::Filter::liner_mipmap_liner;
 				cmd.sampler.try_emplace("base_color", sampler);
 				test_pass->queue.emplace_back(std::move(cmd));
 				mesh_id++;
@@ -363,25 +296,21 @@ namespace Helios
 			skybox_pass->clear_state.allow_clear = false;
 			skybox_pass->update();
         	// skybox cube
-        	glActiveTexture(GL_TEXTURE0);
-        	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         	skybox_pass->render();
         	glDepthFunc(GL_LESS);
-			framebuffer->unbind();
+			//framebuffer->unbind();
 
-			frame_buffer_pass->clear_state.clear_color = true;
-			frame_buffer_pass->clear_state.clear_depth = false;
-
+			//frame_buffer_pass->clear_state.clear_color = true;
+			//frame_buffer_pass->clear_state.clear_depth = false;
 			//frame_buffer_pass->update();
-			frame_buffer_pass->update();
-			frame_buffer_pass->enable_depth_test = false;
-			glBindTexture(GL_TEXTURE_2D, framebuffer->texColorBuffer);
-			frame_buffer_pass->render();
+			//frame_buffer_pass->enable_depth_test = false;
+			//glBindTexture(GL_TEXTURE_2D, framebuffer->texColorBuffer);
+			//frame_buffer_pass->render();
 
 
 			context.m_imgui_layer->render();
-			context.m_window->swap_buffers();
-			context.m_window->poll_events();
+			Window::instance().swap_buffers();
+			Window::instance().poll_events();
 		}
 	}
 

@@ -16,9 +16,7 @@ namespace Helios
         auto shader_process() -> void override;
         auto set_uniform(std::string name, std::any uniform) -> void override;
 
-
         auto update() -> void override;
-
         auto render() -> void override;
     };
 

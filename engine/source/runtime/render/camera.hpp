@@ -15,7 +15,7 @@ namespace Helios::Scene
     public:
         Camera();
         ~Camera() = default;
-
+        auto init() -> void;
         auto update() -> void;
 
         //camera controll
@@ -31,14 +31,14 @@ namespace Helios::Scene
         auto up()      const -> glm::vec3 { return glm::normalize( *reinterpret_cast<const glm::vec3 *>(&inv_view_matrix_[1])); }
 
         auto set_camera_parameters(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f)) -> void;
-        auto set_fov(float fov) -> void { fov_ = fov; }
-        auto set_aspect(float aspect) -> void { aspect_ = aspect; }
-        auto set_near_far_plane(float near, float far) -> void { near_plane_ = near; far_plane_ = far; }
+        auto set_fov(float fov) -> void { fov_ = fov; matrix_dirty = true; }
+        auto set_aspect(float aspect) -> void { aspect_ = aspect; matrix_dirty = true; }
+        auto set_near_far_plane(float near, float far) -> void { near_plane_ = near; far_plane_ = far; matrix_dirty = true; }
 
         auto get_view_matrix()const -> glm::mat4 { return view_matrix_; }
         auto get_inv_view_matrix()const -> glm::mat4 { return inv_view_matrix_; }
         auto get_projection_matrix()const  -> glm::mat4 { return proj_matrix_; }
-        
+
     private:
         auto calculate_view_martix() -> void;
         auto calculate_proj_matrix() -> void;
@@ -57,7 +57,7 @@ namespace Helios::Scene
 
         glm::vec3 up_{ 0.0f, 1.0f, 0.0f };
 
-        bool need_update_matrix_{ false };
+        bool matrix_dirty{ false };
 
         //OpenGL normalized right hand camera coordinate system, OpenGL Camera look at negative z
         static const glm::vec3 negative_z;

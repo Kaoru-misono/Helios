@@ -51,6 +51,8 @@ namespace Helios
         Kind kind{Kind::TEX_2D};
         Format format{Format::rgba8};
         virtual ~Texture() {}
-        virtual auto texture_id() const -> unsigned int = 0;
+        virtual auto bind() const -> void = 0;
+        virtual auto unbind() const -> void = 0;
+        virtual auto set_sampler(Texture_Sampler const& sampler, int texture_unit) const -> void = 0;
     };
 }
