@@ -1,6 +1,7 @@
 #include "opengl_framebuffer.hpp"
 #include "opengl_texture.hpp"
 #include "logger/logger_marco.hpp"
+#include "window/window.hpp"
 namespace Helios
 {
     OpenGL_Framebuffer::OpenGL_Framebuffer()
@@ -21,6 +22,8 @@ namespace Helios
 	auto OpenGL_Framebuffer::unbind() -> void
     {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// TODO: Hack, resove this
+		glViewport(0, 0, Window::instance().get_width(), Window::instance().get_height());
     }
 
 	auto OpenGL_Framebuffer::attach() -> void
