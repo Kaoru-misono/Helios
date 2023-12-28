@@ -75,55 +75,10 @@ namespace Helios
 			1.0f, 1.0f
     	};
 
-		float box_vertices[] = {
-			// positions
-			-1.0f,  1.0f, -1.0f,
-			-1.0f, -1.0f, -1.0f,
-			1.0f, -1.0f, -1.0f,
-			1.0f, -1.0f, -1.0f,
-			1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-
-			-1.0f, -1.0f,  1.0f,
-			-1.0f, -1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f,  1.0f,
-			-1.0f, -1.0f,  1.0f,
-
-			1.0f, -1.0f, -1.0f,
-			1.0f, -1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f, -1.0f,
-			1.0f, -1.0f, -1.0f,
-
-			-1.0f, -1.0f,  1.0f,
-			-1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f, -1.0f,  1.0f,
-			-1.0f, -1.0f,  1.0f,
-
-			-1.0f,  1.0f, -1.0f,
-			1.0f,  1.0f, -1.0f,
-			1.0f,  1.0f,  1.0f,
-			1.0f,  1.0f,  1.0f,
-			-1.0f,  1.0f,  1.0f,
-			-1.0f,  1.0f, -1.0f,
-
-			-1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f,  1.0f,
-			1.0f, -1.0f, -1.0f,
-			1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f,  1.0f,
-			1.0f, -1.0f,  1.0f
-		};
-
-
 		Assimp_Config config;
 		Assimp_Model bunny = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/bunny_1k.obj", config);
 		Assimp_Model marry = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/Alisya/pink.pmx", config);
+		Assimp_Model cube = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/cube.obj", config);
 		auto cloth_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth.png"});
 		auto cloth_tex_2 = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth_2.png"});
 		auto eye_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/eye.png"});
@@ -131,6 +86,8 @@ namespace Helios
 		auto hair_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/hair.png"});
 		auto emote_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/emote.png"});
 		auto pink_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/nk.png"});
+		auto wall_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/brickwall.jpg"});
+		auto wall_normal_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/brickwall_normal.jpg"});
 		std::vector<std::string> faces
 		{
 			"D:/github/Helios/engine/asset/texture/sky-box/right.jpg",
@@ -203,7 +160,8 @@ namespace Helios
 			cmd.vertex_array = m_rhi->create_vertex_array();
 			auto& skybox_array = cmd.vertex_array;
 			skybox_array->primitive_count = 12;
-			skybox_array->add_attributes({"POSITION", 3, sizeof(box_vertices), &box_vertices});
+			auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
+			skybox_array->add_attributes({"POSITION", 3, box_vert.size_bytes(), box_vert.data()});
 			skybox_array->create_buffer_and_set_data();
 			cmd.uniform.try_emplace("skybox", cubemapTexture);
 			cmd.sampler.try_emplace("skybox", Texture_Sampler{});
@@ -254,7 +212,8 @@ namespace Helios
 			cmd.vertex_array = m_rhi->create_vertex_array();
 			auto& box_array = cmd.vertex_array;
 			box_array->primitive_count = 12;
-			box_array->add_attributes({"POSITION", 3, sizeof(box_vertices), &box_vertices});
+			auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
+			box_array->add_attributes({"POSITION", 3, box_vert.size_bytes(), box_vert.data()});
 			box_array->create_buffer_and_set_data();
 			light_visualize_pass->queue.emplace_back(std::move(cmd));
 		}
@@ -319,16 +278,16 @@ namespace Helios
 					shadow_pass->queue.emplace_back(cmd);
 				}
 				RHI_Draw_Command box_cmd;
-				auto box_position = std::span<float>(box_vertices);
 				box_cmd.vertex_array = m_rhi->create_vertex_array();
 				auto& vertex_array = box_cmd.vertex_array;
 				vertex_array->primitive_count += 12;
-				vertex_array->add_attributes({"POSITION", 3, box_position.size_bytes(), box_position.data()});
+				auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
+				vertex_array->add_attributes({"POSITION", 3, box_vert.size_bytes(), box_vert.data()});
 				vertex_array->create_buffer_and_set_data();
 				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
 				shadow_pass->queue.emplace_back(box_cmd);
 			}
-			glViewport(0, 0, 4096, 4096);
+			glViewport(0, 0, 8192, 8192);
 			framebuffer->bind();
 			shadow_pass->update();
 			shadow_pass->render();
@@ -392,11 +351,13 @@ namespace Helios
 			{
 				box_pass->queue.clear();
 				RHI_Draw_Command box_cmd;
-				auto box_position = std::span<float>(box_vertices);
 				box_cmd.vertex_array = m_rhi->create_vertex_array();
 				auto& vertex_array = box_cmd.vertex_array;
 				vertex_array->primitive_count += 12;
-				vertex_array->add_attributes({"POSITION", 3, box_position.size_bytes(), box_position.data()});
+				auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
+				auto box_texcoord = std::span<glm::vec2>(cube.meshes[0].vertex_info.texcoord);
+				vertex_array->add_attributes({"POSITION", 3, box_vert.size_bytes(), box_vert.data()});
+				vertex_array->add_attributes({"TEXCOORD", 2, box_texcoord.size_bytes(), box_texcoord.data()});
 				vertex_array->create_buffer_and_set_data();
 				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
 				box_cmd.uniform.try_emplace("shadow_map", depth_texture);
@@ -404,6 +365,10 @@ namespace Helios
 				sampler.min_filter = Texture_Sampler::Filter::nearest;
 				sampler.mag_filter = Texture_Sampler::Filter::nearest;
 				box_cmd.sampler.try_emplace("shadow_map", sampler);
+				box_cmd.uniform.try_emplace("base_color", wall_tex);
+				box_cmd.sampler.try_emplace("base_color", Texture_Sampler{});
+				box_cmd.uniform.try_emplace("normal", wall_normal_tex);
+				box_cmd.sampler.try_emplace("normal", Texture_Sampler{});
 				box_pass->queue.emplace_back(std::move(box_cmd));
 			}
 			box_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());

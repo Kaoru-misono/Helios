@@ -2,11 +2,14 @@
 layout(location = 0) out vec4 FragColor;
 
 in vec3 v_Position;
+in vec2 v_Texcoord;
 in vec4 v_Fragpos_light_space;
 uniform vec3 camera_pos;
 uniform vec3 light_pos;
 uniform float shadow_bias;
 uniform sampler2D shadow_map;
+uniform sampler2D base_color;
+uniform sampler2D normal;
 
 void main()
 {
@@ -27,5 +30,6 @@ void main()
         }
     }
     shadow /= 9.0;
-	FragColor = vec4(0.7) * (1.0 - shadow);
+    vec3 diffuse = texture(base_color, v_Texcoord * 5.0).rgb;
+	FragColor = vec4(diffuse, 1.0) * (1.0 - shadow);
 }

@@ -86,7 +86,7 @@ namespace Helios
         texture->gl_kind = GL_TEXTURE_2D;
         texture->bind();
         // TODO: 1024 should be changeable
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 4096, 4096, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 8192, 8192, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
         texture->unbind();
         return texture;
     }
