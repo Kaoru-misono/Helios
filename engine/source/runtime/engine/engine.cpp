@@ -216,14 +216,33 @@ namespace Helios
 		context.m_main_camera->set_camera_parameters(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 		//auto framebuffer = std::make_unique<OpenGL_Framebuffer>(glm::vec2{Window::instance().get_width(),Window::instance().get_height()});
 		auto depth_texture = m_rhi->create_texture(Texture::Kind::TEX_2D, {""}, Texture::Format::depth24);
-		Texture_Sampler sampler;
-		sampler.min_filter = Texture_Sampler::Filter::nearest;
-		sampler.mag_filter = Texture_Sampler::Filter::nearest;
-		depth_texture->set_sampler(sampler);
-		auto frame_buffer = m_rhi->create_framebuffer();
-		frame_buffer->depth.texture = depth_texture;
-		frame_buffer->attach();
+		auto framebuffer = m_rhi->create_framebuffer();
+		framebuffer->depth.texture = depth_texture;
+		framebuffer->attach();
 
+		auto shadow_pass = std::make_shared<OpenGL_Pass>("shadow_pass");
+		shadow_pass->clear_state.clear_color = false;
+		shadow_pass->vertex_shader = m_rhi->create_shader( "shader/shadow_mapping_vert.glsl");
+		shadow_pass->fragment_shader = m_rhi->create_shader( "shader/shadow_mapping_frag.glsl");
+		shadow_pass->shader_process();
+		{
+			RHI_Draw_Command cmd;
+			cmd.vertex_array = m_rhi->create_vertex_array();
+			auto& vertex_array = cmd.vertex_array;
+			vertex_array->primitive_count = 12;
+			vertex_array->add_attributes({"POSITION", 2, sizeof(quadVertices), &quadVertices});
+			vertex_array->create_buffer_and_set_data();
+			cmd.uniform.try_emplace("depth_map", depth_texture);
+			Texture_Sampler sampler;
+			sampler.min_filter = Texture_Sampler::Filter::nearest;
+			sampler.mag_filter = Texture_Sampler::Filter::nearest;
+			cmd.sampler.try_emplace("depth_map", sampler);
+		}
+
+		auto depth_debug_pass = std::make_unique<OpenGL_Pass>("depth_debug_pass");
+		depth_debug_pass->vertex_shader = m_rhi->create_shader( "shader/debug_quad_vert.glsl");
+		depth_debug_pass->fragment_shader = m_rhi->create_shader( "shader/debug_quad_frag.glsl");
+		depth_debug_pass->shader_process();
 
 		// UBO
 		GLuint b_index = glGetUniformBlockIndex(test_pass->gpu_program->id(), "transforms");
@@ -235,11 +254,16 @@ namespace Helios
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 0, transform_ubo, 0, 2 * sizeof(glm::mat4));
 
+		// Lighting
+		glm::vec3 light_pos{0.0f, 1.5f, -3.0f};
+
 		while (!Window::instance().should_close())
 		{
 			m_input_manager->process_control_command();
 			context.m_imgui_layer->update();
 			context.m_main_camera->update();
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			// UBO
 			glBindBuffer(GL_UNIFORM_BUFFER, transform_ubo);
 			glm::mat4 view = context.m_main_camera->get_view_matrix();
@@ -256,54 +280,29 @@ namespace Helios
 			static glm::vec3 box_pos = glm::vec3(0.0f, -1.1f, -0.6f);
 			glm::mat4 model_mat = glm::translate(glm::mat4(1.0f), model_pos);
 			model_mat = glm::scale(model_mat, glm::vec3(0.1f));
-
-			ImGui::Begin("Settings");
-			ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
-			ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
-			ImGui::DragFloat3("box_pos", glm::value_ptr(box_pos), 0.01f);
-			ImGui::End();
-
+			glm::mat4 box_model_mat = glm::translate(glm::mat4(1.0f), box_pos);
+			box_model_mat = glm::scale(box_model_mat, glm::vec3(2.0f, 0.1f, 2.0f));
+			glm::mat4 light_proj, light_view;
+			glm::mat4 light_matrix;
+			float near_plane = 0.1f, far_plane = 7.5f;
+			light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+			light_view = glm::lookAt(light_pos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			light_matrix = light_proj * light_view;
+			shadow_pass->set_uniform("light_matrix", light_matrix);
+			shadow_pass->queue.clear();
 			{
-				test_pass->queue.clear();
-				int mesh_id = 0;
 				for (auto& mesh: marry.meshes) {
-				auto& vertex_info = mesh.vertex_info;
-				const int num_of_vertex = (int)(vertex_info.position.size());
-				auto position = std::span<glm::vec3>(vertex_info.position);
-				auto normal = std::span<glm::vec3>(vertex_info.normal);
-				auto texcoord = std::span<glm::vec2>(vertex_info.texcoord);
-				RHI_Draw_Command cmd;
-				cmd.vertex_array = m_rhi->create_vertex_array();
-				auto& vertex_array = cmd.vertex_array;
-				vertex_array->primitive_count += position.size() / (size_t)3;
-				vertex_array->add_attributes({"POSITION", 3, position.size_bytes(), position.data()});
-				vertex_array->add_attributes({"NORMAL", 3, normal.size_bytes(), normal.data()});
-				vertex_array->add_attributes({"TEXCOORD", 2, texcoord.size_bytes(), texcoord.data()});
-				vertex_array->create_buffer_and_set_data();
-				cmd.uniform["mesh_id"] = mesh_id;
-				if (material_map[mesh_id] == nullptr)
-					std::cout << mesh_id << std::endl;
-				cmd.uniform.try_emplace("base_color", material_map[mesh_id]);
-				Texture_Sampler sampler;
-				cmd.sampler.try_emplace("base_color", sampler);
-				test_pass->queue.emplace_back(std::move(cmd));
-				mesh_id++;
+					auto& vertex_info = mesh.vertex_info;
+					auto position = std::span<glm::vec3>(vertex_info.position);
+					RHI_Draw_Command cmd;
+					cmd.vertex_array = m_rhi->create_vertex_array();
+					auto& vertex_array = cmd.vertex_array;
+					vertex_array->primitive_count += position.size() / (size_t)3;
+					vertex_array->add_attributes({"POSITION", 3, position.size_bytes(), position.data()});
+					vertex_array->create_buffer_and_set_data();
+					cmd.uniform.try_emplace("model_matrix", model_mat);
+					shadow_pass->queue.emplace_back(cmd);
 				}
-			}
-			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
-			test_pass->set_uniform("model_matrix", model_mat);
-			test_pass->set_uniform("time", (float)glfwGetTime());
-			test_pass->set_uniform("light_dir", glm::vec3(0.0f, 1.0f, 1.0f));
-			// test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-			// test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			test_pass->clear_state.clear_color = true;
-			test_pass->clear_state.clear_color_value = clear_color;
-			test_pass->clear_state.clear_depth = true;
-			test_pass->update();
-			test_pass->render();
-
-			{
-				box_pass->queue.clear();
 				RHI_Draw_Command box_cmd;
 				auto box_position = std::span<float>(box_vertices);
 				box_cmd.vertex_array = m_rhi->create_vertex_array();
@@ -311,26 +310,111 @@ namespace Helios
 				vertex_array->primitive_count += 12;
 				vertex_array->add_attributes({"POSITION", 3, box_position.size_bytes(), box_position.data()});
 				vertex_array->create_buffer_and_set_data();
-				glm::mat4 box_model_mat = glm::translate(glm::mat4(1.0f), box_pos);
-				box_model_mat = glm::scale(box_model_mat, glm::vec3(2.0f, 0.1f, 2.0f));
 				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
-				box_pass->queue.emplace_back(std::move(box_cmd));
+				shadow_pass->queue.emplace_back(box_cmd);
 			}
-			box_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-			box_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			box_pass->clear_state.allow_clear = false;
-			box_pass->update();
-			box_pass->render();
-			// draw skybox as last
-			glEnable(GL_DEPTH_TEST);
-        	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
-			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			skybox_pass->clear_state.allow_clear = false;
-			skybox_pass->update();
-        	// skybox cube
-        	skybox_pass->render();
-        	glDepthFunc(GL_LESS);
+			glViewport(0, 0, 1024, 1024);
+			framebuffer->bind();
+			shadow_pass->update();
+			shadow_pass->render();
+			framebuffer->unbind();
+			glViewport(0, 0, Window::instance().get_width(), Window::instance().get_height());
+
+			{
+				depth_debug_pass->queue.clear();
+				RHI_Draw_Command cmd;
+				cmd.vertex_array = m_rhi->create_vertex_array();
+				auto& quad_array = cmd.vertex_array;
+				quad_array->primitive_count = 2;
+				quad_array->add_attributes({"POSITION", 2, sizeof(quadVertices), &quadVertices});
+				quad_array->add_attributes({"TEXCOORD", 2, sizeof(quadTexcoord), &quadTexcoord});
+				quad_array->create_buffer_and_set_data();
+				cmd.uniform.try_emplace("near_plane", near_plane);
+				cmd.uniform.try_emplace("far_plane", far_plane);
+				cmd.uniform.try_emplace("depth_map", depth_texture);
+				Texture_Sampler sampler;
+				sampler.min_filter = Texture_Sampler::Filter::nearest;
+				sampler.mag_filter = Texture_Sampler::Filter::nearest;
+				cmd.sampler.try_emplace("depth_map", sampler);
+				depth_debug_pass->queue.emplace_back(std::move(cmd));
+			}
+			depth_debug_pass->update();
+			depth_debug_pass->render();
+
+
+			ImGui::Begin("Settings");
+			ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
+			ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
+			ImGui::DragFloat3("box_pos", glm::value_ptr(box_pos), 0.01f);
+			ImGui::DragFloat3("light_pos", glm::value_ptr(light_pos), 0.01f);
+			ImGui::End();
+
+// 			{
+// 				test_pass->queue.clear();
+// 				int mesh_id = 0;
+// 				for (auto& mesh: marry.meshes) {
+// 				auto& vertex_info = mesh.vertex_info;
+// 				const int num_of_vertex = (int)(vertex_info.position.size());
+// 				auto position = std::span<glm::vec3>(vertex_info.position);
+// 				auto normal = std::span<glm::vec3>(vertex_info.normal);
+// 				auto texcoord = std::span<glm::vec2>(vertex_info.texcoord);
+// 				RHI_Draw_Command cmd;
+// 				cmd.vertex_array = m_rhi->create_vertex_array();
+// 				auto& vertex_array = cmd.vertex_array;
+// 				vertex_array->primitive_count += position.size() / (size_t)3;
+// 				vertex_array->add_attributes({"POSITION", 3, position.size_bytes(), position.data()});
+// 				vertex_array->add_attributes({"NORMAL", 3, normal.size_bytes(), normal.data()});
+// 				vertex_array->add_attributes({"TEXCOORD", 2, texcoord.size_bytes(), texcoord.data()});
+// 				vertex_array->create_buffer_and_set_data();
+// 				cmd.uniform["mesh_id"] = mesh_id;
+// 				if (material_map[mesh_id] == nullptr)
+// 					std::cout << mesh_id << std::endl;
+// 				cmd.uniform.try_emplace("base_color", material_map[mesh_id]);
+// 				Texture_Sampler sampler;
+// 				cmd.sampler.try_emplace("base_color", sampler);
+// 				test_pass->queue.emplace_back(std::move(cmd));
+// 				mesh_id++;
+// 				}
+// 			}
+// 			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
+// 			test_pass->set_uniform("model_matrix", model_mat);
+// 			test_pass->set_uniform("time", (float)glfwGetTime());
+// 			test_pass->set_uniform("light_dir", glm::vec3(0.0f, 1.0f, 1.0f));
+// 			// test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+// 			// test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+// 			test_pass->clear_state.clear_color = true;
+// 			test_pass->clear_state.clear_color_value = clear_color;
+// 			test_pass->clear_state.clear_depth = true;
+// 			test_pass->update();
+// 			test_pass->render();
+//
+// 			{
+// 				box_pass->queue.clear();
+// 				RHI_Draw_Command box_cmd;
+// 				auto box_position = std::span<float>(box_vertices);
+// 				box_cmd.vertex_array = m_rhi->create_vertex_array();
+// 				auto& vertex_array = box_cmd.vertex_array;
+// 				vertex_array->primitive_count += 12;
+// 				vertex_array->add_attributes({"POSITION", 3, box_position.size_bytes(), box_position.data()});
+// 				vertex_array->create_buffer_and_set_data();
+// 				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
+// 				box_pass->queue.emplace_back(std::move(box_cmd));
+// 			}
+// 			box_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+// 			box_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+// 			box_pass->clear_state.allow_clear = false;
+// 			box_pass->update();
+// 			box_pass->render();
+// 			// draw skybox as last
+// 			glEnable(GL_DEPTH_TEST);
+//         	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+// 			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
+// 			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+// 			skybox_pass->clear_state.allow_clear = false;
+// 			skybox_pass->update();
+//         	// skybox cube
+//         	skybox_pass->render();
+//        	glDepthFunc(GL_LESS);
 			//framebuffer->unbind();
 
 			// frame_buffer_pass->clear_state.clear_color = true;

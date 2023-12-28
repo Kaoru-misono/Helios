@@ -42,10 +42,10 @@ namespace Helios
 	    		in.close();
 	    	}
 	    	else
-	    		LOG_ERROR( "Could not read from file ", path );
+	    		LOG_ERROR( "Could not read from file: {0}", path );
 	    }
 	    else
-	    	LOG_ERROR( "Could not open the file! " );
+	    	LOG_ERROR( "Could not open the file: {0}", path);
 	    return ShaderSrc;
     }
 
