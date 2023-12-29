@@ -14,6 +14,13 @@ namespace Helios
 
     struct Vertex_Attribute
     {
+        template<class T>
+        Vertex_Attribute(std::string name, std::span<T> buffer)
+            : element_name(name)
+            , element_size(buffer.size_bytes() / (buffer.size() * sizeof(float)))
+            , buffer_offset(buffer.size_bytes())
+            , buffer(buffer.data())
+        {}
         std::string element_name{ "" };
         size_t element_size{};
         size_t buffer_offset{};

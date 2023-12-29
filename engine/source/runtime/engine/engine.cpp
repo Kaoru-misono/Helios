@@ -55,24 +55,22 @@ namespace Helios
 		m_input_manager = std::make_shared<Input_Manager>();
 		m_input_manager->initialize();
 
-		float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-			// positions   // texCoords
-			-1.0f,  1.0f,
-			-1.0f, -1.0f,
-			1.0f, -1.0f,
-			-1.0f,  1.0f,
-			1.0f, -1.0f,
-			1.0f,  1.0f
+		std::vector<glm::vec2> quadVertices = {
+			{-1.0f,  1.0f},
+			{-1.0f, -1.0f},
+			{1.0f, -1.0f},
+			{-1.0f,  1.0f},
+			{1.0f, -1.0f},
+			{1.0f,  1.0f}
     	};
 
-		float quadTexcoord[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-			// positions   // texCoords
-			0.0f, 1.0f,
-			0.0f, 0.0f,
-			1.0f, 0.0f,
-			0.0f, 1.0f,
-			1.0f, 0.0f,
-			1.0f, 1.0f
+		std::vector<glm::vec2> quadTexcoord = {
+			{0.0f, 1.0f},
+			{0.0f, 0.0f},
+			{1.0f, 0.0f},
+			{0.0f, 1.0f},
+			{1.0f, 0.0f},
+			{1.0f, 1.0f}
     	};
 
 		Assimp_Config config;
@@ -144,8 +142,10 @@ namespace Helios
 			cmd.vertex_array = m_rhi->create_vertex_array();
 			auto& quad_array = cmd.vertex_array;
 			quad_array->primitive_count = 2;
-			quad_array->add_attributes({"POSITION", 2, sizeof(quadVertices), &quadVertices});
-			quad_array->add_attributes({"TEXCOORD", 2, sizeof(quadTexcoord), &quadTexcoord});
+			auto quad_vert = std::span<glm::vec2>(quadVertices);
+			auto quad_texcoord = std::span<glm::vec2>(quadTexcoord);
+			quad_array->add_attributes({"POSITION", quad_vert});
+			quad_array->add_attributes({"TEXCOORD", quad_texcoord});
 			quad_array->create_buffer_and_set_data();
 			frame_buffer_pass->queue.emplace_back(std::move(cmd));
 		}
@@ -161,7 +161,7 @@ namespace Helios
 			auto& skybox_array = cmd.vertex_array;
 			skybox_array->primitive_count = 12;
 			auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
-			skybox_array->add_attributes({"POSITION", 3, box_vert.size_bytes(), box_vert.data()});
+			skybox_array->add_attributes({"POSITION", box_vert});
 			skybox_array->create_buffer_and_set_data();
 			cmd.uniform.try_emplace("skybox", cubemapTexture);
 			cmd.sampler.try_emplace("skybox", Texture_Sampler{});
@@ -188,7 +188,8 @@ namespace Helios
 			cmd.vertex_array = m_rhi->create_vertex_array();
 			auto& vertex_array = cmd.vertex_array;
 			vertex_array->primitive_count = 12;
-			vertex_array->add_attributes({"POSITION", 2, sizeof(quadVertices), &quadVertices});
+			auto quad_vert = std::span<glm::vec2>(quadVertices);
+			vertex_array->add_attributes({"POSITION", quad_vert});
 			vertex_array->create_buffer_and_set_data();
 			cmd.uniform.try_emplace("depth_map", depth_texture);
 			Texture_Sampler sampler;
@@ -213,7 +214,7 @@ namespace Helios
 			auto& box_array = cmd.vertex_array;
 			box_array->primitive_count = 12;
 			auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
-			box_array->add_attributes({"POSITION", 3, box_vert.size_bytes(), box_vert.data()});
+			box_array->add_attributes({"POSITION", box_vert});
 			box_array->create_buffer_and_set_data();
 			light_visualize_pass->queue.emplace_back(std::move(cmd));
 		}
@@ -272,7 +273,7 @@ namespace Helios
 					cmd.vertex_array = m_rhi->create_vertex_array();
 					auto& vertex_array = cmd.vertex_array;
 					vertex_array->primitive_count += position.size() / (size_t)3;
-					vertex_array->add_attributes({"POSITION", 3, position.size_bytes(), position.data()});
+					vertex_array->add_attributes({"POSITION", position});
 					vertex_array->create_buffer_and_set_data();
 					cmd.uniform.try_emplace("model_matrix", model_mat);
 					shadow_pass->queue.emplace_back(cmd);
@@ -282,7 +283,7 @@ namespace Helios
 				auto& vertex_array = box_cmd.vertex_array;
 				vertex_array->primitive_count += 12;
 				auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
-				vertex_array->add_attributes({"POSITION", 3, box_vert.size_bytes(), box_vert.data()});
+				vertex_array->add_attributes({"POSITION", box_vert});
 				vertex_array->create_buffer_and_set_data();
 				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
 				shadow_pass->queue.emplace_back(box_cmd);
@@ -300,7 +301,7 @@ namespace Helios
 			ImGui::DragFloat3("box_pos", glm::value_ptr(box_pos), 0.01f);
 			ImGui::DragFloat3("light_pos", glm::value_ptr(light_pos), 0.01f);
 			ImGui::DragFloat("shadow_bias", &shadow_bias, 0.001f);
-			ImGui::Checkbox("Debug:", &enable_debug);
+			ImGui::Checkbox("Debug: shadow map", &enable_debug);
 			ImGui::End();
 
 			{
@@ -316,9 +317,9 @@ namespace Helios
 					cmd.vertex_array = m_rhi->create_vertex_array();
 					auto& vertex_array = cmd.vertex_array;
 					vertex_array->primitive_count += position.size() / (size_t)3;
-					vertex_array->add_attributes({"POSITION", 3, position.size_bytes(), position.data()});
-					vertex_array->add_attributes({"NORMAL", 3, normal.size_bytes(), normal.data()});
-					vertex_array->add_attributes({"TEXCOORD", 2, texcoord.size_bytes(), texcoord.data()});
+					vertex_array->add_attributes({"POSITION", position});
+					vertex_array->add_attributes({"NORMAL", normal});
+					vertex_array->add_attributes({"TEXCOORD", texcoord});
 					vertex_array->create_buffer_and_set_data();
 					cmd.uniform["mesh_id"] = mesh_id;
 					if (material_map[mesh_id] == nullptr)
@@ -356,8 +357,8 @@ namespace Helios
 				vertex_array->primitive_count += 12;
 				auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
 				auto box_texcoord = std::span<glm::vec2>(cube.meshes[0].vertex_info.texcoord);
-				vertex_array->add_attributes({"POSITION", 3, box_vert.size_bytes(), box_vert.data()});
-				vertex_array->add_attributes({"TEXCOORD", 2, box_texcoord.size_bytes(), box_texcoord.data()});
+				vertex_array->add_attributes({"POSITION", box_vert});
+				vertex_array->add_attributes({"TEXCOORD", box_texcoord});
 				vertex_array->create_buffer_and_set_data();
 				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
 				box_cmd.uniform.try_emplace("shadow_map", depth_texture);
@@ -403,8 +404,10 @@ namespace Helios
 				cmd.vertex_array = m_rhi->create_vertex_array();
 				auto& quad_array = cmd.vertex_array;
 				quad_array->primitive_count = 2;
-				quad_array->add_attributes({"POSITION", 2, sizeof(quadVertices), &quadVertices});
-				quad_array->add_attributes({"TEXCOORD", 2, sizeof(quadTexcoord), &quadTexcoord});
+				auto quad_vert = std::span<glm::vec2>(quadVertices);
+				auto quad_texcoord = std::span<glm::vec2>(quadTexcoord);
+				quad_array->add_attributes({"POSITION", quad_vert});
+				quad_array->add_attributes({"TEXCOORD", quad_texcoord});
 				quad_array->create_buffer_and_set_data();
 				cmd.uniform.try_emplace("near_plane", near_plane);
 				cmd.uniform.try_emplace("far_plane", far_plane);
