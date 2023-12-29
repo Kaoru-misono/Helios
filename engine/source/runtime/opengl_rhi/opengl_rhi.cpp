@@ -115,17 +115,23 @@ namespace Helios
         return shader;
     }
 
-    auto OpenGL_RHI::create_texture(Texture::Kind kind, std::vector<std::string> const& paths, Texture::Format format, bool should_flip) -> std::shared_ptr<Texture>
+    auto OpenGL_RHI::load_texture(Texture::Kind kind, std::vector<std::string> const& paths, Texture::Format format, bool should_flip) -> std::shared_ptr<Texture>
     {
         std::shared_ptr<Texture> texture;
-        if (kind == Texture::Kind::TEX_2D && paths.size() == 1 && format != Texture::Format::depth24)
+        if (kind == Texture::Kind::TEX_2D && paths.size() == 1)
             texture = OpenGL_Texture::load_2D_texture(paths[0], should_flip);
-        else if (kind == Texture::Kind::TEX_2D && format == Texture::Format::depth24)
-            texture = OpenGL_Texture::create_depth_map_texture();
         else if (kind == Texture::Kind::TEX_CUBE)
             texture = OpenGL_Texture::load_cube_map_texture(paths, should_flip);
         else
             LOG_INFO("Texture create failed.");
+        return texture;
+
+    }
+
+    auto OpenGL_RHI::create_texture(Texture::Kind kind, Texture::Format format, int width, int height) -> std::shared_ptr<Texture>
+    {
+        std::shared_ptr<Texture> texture;
+        texture = OpenGL_Texture::create_texture(kind, format, width, height);
         return texture;
     }
 

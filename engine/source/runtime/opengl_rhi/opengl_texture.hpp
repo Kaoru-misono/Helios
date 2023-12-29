@@ -17,7 +17,7 @@ namespace Helios
         auto id() -> GLuint { return resource; }
         static auto load_2D_texture(std::string const& path, bool flip = false) -> std::shared_ptr<OpenGL_Texture>;
         static auto load_cube_map_texture(std::vector<std::string> const& paths, bool flip = false) -> std::shared_ptr<OpenGL_Texture>;
-        static auto create_depth_map_texture() -> std::shared_ptr<OpenGL_Texture>;
+        static auto create_texture(Texture::Kind kind, Texture::Format format, int width, int height) -> std::shared_ptr<OpenGL_Texture>;
         GLenum gl_kind;
     private:
         GLuint resource;

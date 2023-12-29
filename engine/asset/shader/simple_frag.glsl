@@ -4,8 +4,13 @@ layout(location = 0) out vec4 FragColor;
 in vec3 v_Position;
 in vec2 v_Texcoord;
 in vec4 v_Fragpos_light_space;
-uniform vec3 camera_pos;
-uniform vec3 light_pos;
+
+in VS_OUT {
+	vec3 tangent_light_pos;
+	vec3 tangent_camera_pos;
+	vec3 tangent_vert_pos;
+} tangent_space;
+
 uniform float shadow_bias;
 uniform sampler2D shadow_map;
 uniform sampler2D base_color;
@@ -30,6 +35,11 @@ void main()
         }
     }
     shadow /= 9.0;
-    vec3 diffuse = texture(base_color, v_Texcoord * 5.0).rgb;
-	FragColor = vec4(diffuse, 1.0) * (1.0 - shadow);
+    vec3 normal = texture(normal, v_Texcoord * 5.0).rgb;
+    normal = normalize(normal * 2.0 - 1.0);
+    vec3 light_dir = normalize(tangent_space.tangent_light_pos - tangent_space.tangent_vert_pos);
+    vec3 view_dir = normalize(tangent_space.tangent_camera_pos - tangent_space.tangent_vert_pos);
+    vec3 diffuse = texture(base_color, v_Texcoord * 5.0).rgb * max(dot(light_dir, normal), 0.0);
+    vec3 specular = vec3(0.2) * pow(max(dot(normal, normalize(light_dir + view_dir)), 0.0), 32.0);
+	FragColor = vec4(diffuse + specular, 1.0) * (1.0 - shadow);
 }

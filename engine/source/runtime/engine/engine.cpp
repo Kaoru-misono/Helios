@@ -77,15 +77,15 @@ namespace Helios
 		Assimp_Model bunny = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/bunny_1k.obj", config);
 		Assimp_Model marry = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/Alisya/pink.pmx", config);
 		Assimp_Model cube = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/cube.obj", config);
-		auto cloth_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth.png"});
-		auto cloth_tex_2 = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth_2.png"});
-		auto eye_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/eye.png"});
-		auto face_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/face.png"});
-		auto hair_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/hair.png"});
-		auto emote_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/emote.png"});
-		auto pink_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/nk.png"});
-		auto wall_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/brickwall.jpg"});
-		auto wall_normal_tex = m_rhi->create_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/brickwall_normal.jpg"});
+		auto cloth_tex = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth.png"});
+		auto cloth_tex_2 = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth_2.png"});
+		auto eye_tex = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/eye.png"});
+		auto face_tex = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/face.png"});
+		auto hair_tex = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/hair.png"});
+		auto emote_tex = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/emote.png"});
+		auto pink_tex = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/nk.png"});
+		auto wall_tex = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/brickwall.jpg"});
+		auto wall_normal_tex = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/texture/brickwall_normal.jpg"});
 		std::vector<std::string> faces
 		{
 			"D:/github/Helios/engine/asset/texture/sky-box/right.jpg",
@@ -95,7 +95,7 @@ namespace Helios
 			"D:/github/Helios/engine/asset/texture/sky-box/front.jpg",
 			"D:/github/Helios/engine/asset/texture/sky-box/back.jpg"
 		};
-		auto cubemapTexture = m_rhi->create_texture(Texture::Kind::TEX_CUBE, faces);
+		auto cubemapTexture = m_rhi->load_texture(Texture::Kind::TEX_CUBE, faces);
 		std::unordered_map<int, std::shared_ptr<Texture>> material_map{
 			{0, cloth_tex},
 			{1, cloth_tex},
@@ -173,7 +173,7 @@ namespace Helios
 
 		context.m_main_camera->set_camera_parameters(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 		//auto framebuffer = std::make_unique<OpenGL_Framebuffer>(glm::vec2{Window::instance().get_width(),Window::instance().get_height()});
-		auto depth_texture = m_rhi->create_texture(Texture::Kind::TEX_2D, {""}, Texture::Format::depth24);
+		auto depth_texture = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::depth24, 8192, 8192);
 		auto framebuffer = m_rhi->create_framebuffer();
 		framebuffer->depth.texture = depth_texture;
 		framebuffer->attach();
@@ -357,8 +357,12 @@ namespace Helios
 				vertex_array->primitive_count += 12;
 				auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
 				auto box_texcoord = std::span<glm::vec2>(cube.meshes[0].vertex_info.texcoord);
+				auto box_normal = std::span<glm::vec3>(cube.meshes[0].vertex_info.normal);
+				auto box_tangent = std::span<glm::vec3>(cube.meshes[0].vertex_info.tangent);
 				vertex_array->add_attributes({"POSITION", box_vert});
 				vertex_array->add_attributes({"TEXCOORD", box_texcoord});
+				vertex_array->add_attributes({"NORMAL", box_normal});
+				vertex_array->add_attributes({"TANGENT", box_tangent});
 				vertex_array->create_buffer_and_set_data();
 				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
 				box_cmd.uniform.try_emplace("shadow_map", depth_texture);

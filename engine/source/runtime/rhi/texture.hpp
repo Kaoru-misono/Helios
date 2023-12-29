@@ -47,6 +47,7 @@ namespace Helios
             r8,
             rgb8,
             rgba8,
+            rgb16f,
             depth24,
         };
         std::vector<std::shared_ptr<Image>> images;

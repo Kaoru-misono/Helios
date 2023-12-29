@@ -78,15 +78,20 @@ namespace Helios
         return texture;
     }
 
-    auto OpenGL_Texture::create_depth_map_texture() -> std::shared_ptr<OpenGL_Texture>
+    auto OpenGL_Texture::create_texture(Texture::Kind kind, Texture::Format format, int width, int height) -> std::shared_ptr<OpenGL_Texture>
     {
         auto texture = std::make_shared<OpenGL_Texture>();
-        texture->kind = Texture::Kind::TEX_2D;
-        texture->format = Texture::Format::depth24;
+        texture->kind = kind;
+        texture->format = format;
         texture->gl_kind = GL_TEXTURE_2D;
         texture->bind();
         // TODO: 1024 should be changeable
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 8192, 8192, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        if (format == Texture::Format::depth24)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        else if (format == Texture::Format::rgba8)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+        else if (format == Texture::Format::rgb16f)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
         texture->unbind();
         return texture;
     }
