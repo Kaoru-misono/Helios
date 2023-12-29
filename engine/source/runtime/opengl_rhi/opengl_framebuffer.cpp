@@ -29,10 +29,12 @@ namespace Helios
 	auto OpenGL_Framebuffer::attach() -> void
 	{
 		bind();
+		const int buffer_size = colors.size();
 		int idx = 0;
 		for (auto& color: colors) {
 			auto texture = std::reinterpret_pointer_cast<OpenGL_Texture>(color.texture);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + idx, GL_TEXTURE_2D, texture->id(), 0);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0 + idx);
 			idx++;
 		}
 		auto depth_texture = std::reinterpret_pointer_cast<OpenGL_Texture>(depth.texture);

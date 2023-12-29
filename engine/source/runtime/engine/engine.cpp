@@ -232,6 +232,25 @@ namespace Helios
 		// Lighting
 		glm::vec3 light_pos{0.0f, 1.5f, 2.0f};
 
+		// Deferred shading
+		auto g_buffer = m_rhi->create_framebuffer();
+		int width =  Window::instance().get_width();
+		int height =  Window::instance().get_height();
+
+		auto position_buffer = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::rgb16f, width, height);
+		g_buffer->colors.emplace_back(position_buffer);
+		auto normal_buffer = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::rgb16f, width, height);
+		g_buffer->colors.emplace_back(normal_buffer);
+		auto albedo_spec_buffer = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::rgba8, width, height);
+		g_buffer->colors.emplace_back(albedo_spec_buffer);
+		auto depth_buffer = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::depth24, width, height);
+		g_buffer->depth.texture = depth_buffer;
+		g_buffer->attach();
+
+		auto g_buffer_pass = std::make_shared<OpenGL_Pass>("g_buffer_pass");
+		//TODO:
+
+
 		while (!Window::instance().should_close())
 		{
 			m_input_manager->process_control_command();
