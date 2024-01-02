@@ -22,40 +22,40 @@ namespace Helios
         Logger();
         ~Logger();
 
-        template<typename... TARGS>
-        auto log(Log_Level level, TARGS&&... args) -> void
+        template<typename... Args>
+        auto log(Log_Level level, fmt::format_string<Args...> fmt, Args&&... args) -> void
         {
             switch (level)
             {
                 case Log_Level::trace:
-                    m_logger->trace(std::forward<TARGS>(args)...);
+                    m_logger->trace(fmt, std::forward<Args>(args)...);
                     break;
                 case Log_Level::debug:
-                    m_logger->debug(std::forward<TARGS>(args)...);
+                    m_logger->debug(fmt, std::forward<Args>(args)...);
                     break;
                 case Log_Level::info:
-                    m_logger->info(std::forward<TARGS>(args)...);
+                    m_logger->info(fmt, std::forward<Args>(args)...);
                     break;
                 case Log_Level::warn:
-                    m_logger->warn(std::forward<TARGS>(args)...);
+                    m_logger->warn(fmt, std::forward<Args>(args)...);
                     break;
                 case Log_Level::error:
-                    m_logger->error(std::forward<TARGS>(args)...);
+                    m_logger->error(fmt, std::forward<Args>(args)...);
                     break;
                 case Log_Level::fetal:
-                    m_logger->critical(std::forward<TARGS>(args)...);
-                    fatalCallback(std::forward<TARGS>(args)...);
+                    m_logger->critical(fmt, std::forward<Args>(args)...);
+                    fatalCallback(std::forward<Args>(args)...);
                     break;
                 default:
                     break;
             }
         }
 
-        template<typename... TARGS>
-        void fatalCallback(TARGS&&... args)
+        template<typename... Args>
+        void fatalCallback(Args&&... args)
         {
-            const std::string format_str = fmt::format(std::forward<TARGS>(args)...);
-            throw std::runtime_error(format_str);
+            //const std::string format_str = fmt::format(std::forward<Args>(args)...);
+            //throw std::runtime_error(format_str);
         }
 
     private:
