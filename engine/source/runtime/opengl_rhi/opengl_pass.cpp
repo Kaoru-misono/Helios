@@ -1,31 +1,18 @@
 #include "opengl_pass.hpp"
+#include "opengl_rhi.hpp"
 #include "adapter.hpp"
 #include "logger/logger_marco.hpp"
 
+
 namespace Helios
 {
-    OpenGL_Pass::OpenGL_Pass(std::shared_ptr<OpenGL_Shader>& vert_shader, std::shared_ptr<OpenGL_Shader>& frag_shader)
-    {
-        if(vert_shader != nullptr)
-        vertex_shader = vert_shader;
-
-        if(frag_shader != nullptr)
-        fragment_shader = frag_shader;
-
-        gpu_program = std::make_unique<OpenGL_GPU_Program>();
-    }
-
     auto OpenGL_Pass::shader_process() -> void
     {
-        if(vertex_shader == nullptr || fragment_shader == nullptr) {
-            LOG_INFO("[ERROR]:{0}-> You need to set vertex shader or fragment shader!", name);
-            return;
-        }
         gpu_program->bind();
-        gpu_program->add_vertex_shader(vertex_shader);
-        gpu_program->add_fragment_shader(fragment_shader);
-        if (geometry_shader != nullptr)
-            gpu_program->add_geometry_shader(geometry_shader);
+        gpu_program->add_vertex_shader(std::make_shared<OpenGL_Shader>(vertex_shader));
+        gpu_program->add_fragment_shader(std::make_shared<OpenGL_Shader>(fragment_shader));
+        if (geometry_shader != "")
+            gpu_program->add_geometry_shader(std::make_shared<OpenGL_Shader>(geometry_shader));
         gpu_program->link_shader();
     }
 

@@ -1,12 +1,32 @@
 #include "opengl_shader.hpp"
 #include "logger/logger_marco.hpp"
 #include <fstream>
+#include <filesystem>
 
 namespace Helios
 {
+	namespace
+    {
+        std::string bin_dir = std::filesystem::current_path().string();
+
+        auto get_source_dir = [](std::string const& bin_dir) -> std::string
+        {
+            auto ps = bin_dir.rfind("Helios");
+
+			auto source_path = bin_dir.substr(0, ps);
+
+            replace(source_path.begin(), source_path.end(), '\\', '/');
+			return source_path;
+        };
+
+        auto source_dir = get_source_dir(bin_dir);
+
+        auto asset_dir = source_dir + "Helios/engine/asset/";
+    }
+
     OpenGL_Shader::OpenGL_Shader(const std::string& in_path): name(in_path)
     {
-		shader_source_ = read_file(in_path, type_);
+		shader_source_ = read_file(asset_dir + in_path, type_);
 		shader_id_ = create_gl_shader(shader_source_, type_);
 		compile(shader_id_, type_);
     }

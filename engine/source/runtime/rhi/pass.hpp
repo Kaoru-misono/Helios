@@ -27,12 +27,12 @@ namespace Helios
         Clear_State clear_state{};
         std::shared_ptr<RHI_Framebuffer> frame_buffer{};
         std::vector<RHI_Draw_Command> queue;
-        std::unique_ptr<RHI_GPU_Program> gpu_program{};
-        std::shared_ptr<RHI_Shader> vertex_shader{};
-        std::shared_ptr<RHI_Shader> fragment_shader{};
-        std::shared_ptr<RHI_Shader> geometry_shader{};
+        std::string vertex_shader{};
+        std::string fragment_shader{};
+        std::string geometry_shader{};
         std::string name{};
     protected:
+        std::unique_ptr<RHI_GPU_Program> gpu_program{};
         //will be set once and cross every frame
         std::unordered_map<std::string, std::any> uniforms{};
         std::unordered_map<std::string, Texture_Sampler> samplers{};

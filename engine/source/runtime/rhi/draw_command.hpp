@@ -25,6 +25,5 @@ namespace Helios
         //std::optional<RHI_Buffer> index_buffer;
         // Uniforms changed between cmds should be set here
         std::unordered_map<std::string, std::any> uniform{};
-        std::unordered_map<std::string, Texture_Sampler> sampler{};
     };
 }

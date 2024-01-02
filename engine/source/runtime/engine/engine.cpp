@@ -121,20 +121,20 @@ namespace Helios
 			{21, emote_tex},
 		};
 		test_pass = std::make_unique<OpenGL_Pass>("test_pass");
-		test_pass->vertex_shader = m_rhi->create_shader( "shader/alisya_vert.glsl");
-		test_pass->fragment_shader = m_rhi->create_shader( "shader/alisya_frag.glsl");
+		test_pass->vertex_shader = "shader/alisya_vert.glsl";
+		test_pass->fragment_shader = "shader/alisya_frag.glsl";
 		// Expode geometry shader, you need to replace fragment shader v -> g if you want to open it
-		// test_pass->geometry_shader = m_rhi->create_shader( "shader/expode_geom.glsl");
+		// test_pass->geometry_shader = "shader/expode_geom.glsl";
 		test_pass->shader_process();
 
 		auto box_pass = std::make_shared<OpenGL_Pass>("box_pass");
-		box_pass->vertex_shader = m_rhi->create_shader( "shader/simple_vert.glsl");
-		box_pass->fragment_shader = m_rhi->create_shader( "shader/simple_frag.glsl");
+		box_pass->vertex_shader = "shader/simple_vert.glsl";
+		box_pass->fragment_shader = "shader/simple_frag.glsl";
 		box_pass->shader_process();
 
 		frame_buffer_pass = std::make_unique<OpenGL_Pass>("framebuffer_pass");
-		frame_buffer_pass->vertex_shader = m_rhi->create_shader( "shader/framebuffer-vert.glsl");
-		frame_buffer_pass->fragment_shader = m_rhi->create_shader( "shader/framebuffer-frag.glsl");
+		frame_buffer_pass->vertex_shader = "shader/framebuffer-vert.glsl";
+		frame_buffer_pass->fragment_shader = "shader/framebuffer-frag.glsl";
 		frame_buffer_pass->shader_process();
 		frame_buffer_pass->set_uniform("screenTexture", 0);
 		{
@@ -151,8 +151,8 @@ namespace Helios
 		}
 
 		auto skybox_pass = std::make_unique<OpenGL_Pass>("skybox_pass");
-		skybox_pass->vertex_shader = m_rhi->create_shader( "shader/skybox-vert.glsl");
-		skybox_pass->fragment_shader = m_rhi->create_shader( "shader/skybox-frag.glsl");
+		skybox_pass->vertex_shader = "shader/skybox-vert.glsl";
+		skybox_pass->fragment_shader = "shader/skybox-frag.glsl";
 		skybox_pass->shader_process();
 		skybox_pass->set_uniform("skybox", 0);
 		Texture_Sampler skybox_sampler;
@@ -182,8 +182,8 @@ namespace Helios
 
 		auto shadow_pass = std::make_shared<OpenGL_Pass>("shadow_pass");
 		shadow_pass->clear_state.clear_color = false;
-		shadow_pass->vertex_shader = m_rhi->create_shader( "shader/shadow_mapping_vert.glsl");
-		shadow_pass->fragment_shader = m_rhi->create_shader( "shader/shadow_mapping_frag.glsl");
+		shadow_pass->vertex_shader = "shader/shadow_mapping_vert.glsl";
+		shadow_pass->fragment_shader = "shader/shadow_mapping_frag.glsl";
 		shadow_pass->shader_process();
 		Texture_Sampler sampler;
 		sampler.min_filter = Texture_Sampler::Filter::nearest;
@@ -201,14 +201,14 @@ namespace Helios
 		}
 
 		auto depth_debug_pass = std::make_unique<OpenGL_Pass>("depth_debug_pass");
-		depth_debug_pass->vertex_shader = m_rhi->create_shader( "shader/debug_quad_vert.glsl");
-		depth_debug_pass->fragment_shader = m_rhi->create_shader( "shader/debug_quad_frag.glsl");
+		depth_debug_pass->vertex_shader = "shader/debug_quad_vert.glsl";
+		depth_debug_pass->fragment_shader = "shader/debug_quad_frag.glsl";
 		depth_debug_pass->shader_process();
 
 		auto light_visualize_pass = std::make_unique<OpenGL_Pass>("light_visualize_pass");
 		light_visualize_pass->clear_state.allow_clear = false;
-		light_visualize_pass->vertex_shader = m_rhi->create_shader( "shader/light_vert.glsl");
-		light_visualize_pass->fragment_shader = m_rhi->create_shader( "shader/light_frag.glsl");
+		light_visualize_pass->vertex_shader = "shader/light_vert.glsl";
+		light_visualize_pass->fragment_shader = "shader/light_frag.glsl";
 		light_visualize_pass->shader_process();
 		{
 			RHI_Draw_Command cmd;
@@ -222,14 +222,14 @@ namespace Helios
 		}
 
 		// UBO
-		GLuint b_index = glGetUniformBlockIndex(test_pass->gpu_program->id(), "transforms");
-		glUniformBlockBinding(test_pass->gpu_program->id(), b_index, 0);
-		unsigned int transform_ubo;
-		glGenBuffers(1, &transform_ubo);
-		glBindBuffer(GL_UNIFORM_BUFFER, transform_ubo);
-		glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 0, transform_ubo, 0, 2 * sizeof(glm::mat4));
+		//GLuint b_index = glGetUniformBlockIndex(test_pass->gpu_program->id(), "transforms");
+		//glUniformBlockBinding(test_pass->gpu_program->id(), b_index, 0);
+		//unsigned int transform_ubo;
+		//glGenBuffers(1, &transform_ubo);
+		//glBindBuffer(GL_UNIFORM_BUFFER, transform_ubo);
+		//glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+		//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		//glBindBufferRange(GL_UNIFORM_BUFFER, 0, transform_ubo, 0, 2 * sizeof(glm::mat4));
 
 		// Lighting
 		glm::vec3 light_pos{0.0f, 1.5f, 2.0f};
@@ -250,13 +250,13 @@ namespace Helios
 		g_buffer->attach();
 
 		auto g_buffer_pass = std::make_shared<OpenGL_Pass>("g_buffer_pass");
-		g_buffer_pass->vertex_shader = m_rhi->create_shader( "shader/g_buffer_vert.glsl");
-		g_buffer_pass->fragment_shader = m_rhi->create_shader( "shader/g_buffer_frag.glsl");
+		g_buffer_pass->vertex_shader = "shader/g_buffer_vert.glsl";
+		g_buffer_pass->fragment_shader = "shader/g_buffer_frag.glsl";
 		g_buffer_pass->shader_process();
 
 		auto deferred_pass = std::make_shared<OpenGL_Pass>("deferred_pass");
-		deferred_pass->vertex_shader = m_rhi->create_shader( "shader/deferred_lighting_vert.glsl");
-		deferred_pass->fragment_shader = m_rhi->create_shader( "shader/deferred_lighting_frag.glsl");
+		deferred_pass->vertex_shader = "shader/deferred_lighting_vert.glsl";
+		deferred_pass->fragment_shader = "shader/deferred_lighting_frag.glsl";
 		deferred_pass->shader_process();
 		//TODO:
 
@@ -268,12 +268,12 @@ namespace Helios
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			// UBO
-			glBindBuffer(GL_UNIFORM_BUFFER, transform_ubo);
+			//glBindBuffer(GL_UNIFORM_BUFFER, transform_ubo);
 			glm::mat4 view = context.m_main_camera->get_view_matrix();
 			glm::mat4 proj = context.m_main_camera->get_projection_matrix();
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
-			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+			//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
+			//glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 			//framebuffer->bind();
 			glEnable(GL_DEPTH_TEST);
