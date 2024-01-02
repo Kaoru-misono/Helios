@@ -4,7 +4,7 @@
 
 namespace Helios
 {
-    OpenGL_Shader::OpenGL_Shader(const std::string& in_path)
+    OpenGL_Shader::OpenGL_Shader(const std::string& in_path): name(in_path)
     {
 		shader_source_ = read_file(in_path, type_);
 		shader_id_ = create_gl_shader(shader_source_, type_);
@@ -78,7 +78,7 @@ namespace Helios
 
 		auto shader_type =
 			type == Shader_Type::VERTEX_SHADER ? "Vertex shader" :
-			type == Shader_Type::VERTEX_SHADER ? "Fragment shader" :
+			type == Shader_Type::FRAGMENT_SHADER ? "Fragment shader" :
 			"Geometry shader";
 	    GLint is_compiled = 0;
 	    glGetShaderiv(shader, GL_COMPILE_STATUS, &is_compiled);
@@ -97,7 +97,7 @@ namespace Helios
 	    	// Use the infoLog as you see fit.
 	    	// In this simple program, we'll just leave
 	    	LOG_ERROR( infoLog.data() );
-	    	LOG_ERROR( shader_type, " Compilation failed!" );
+	    	LOG_ERROR("{0} Compilation failed ! ", shader_type);
 	    	return;
 	    }
 		//LOG_TRACE(shader_type + " compile succeed!");

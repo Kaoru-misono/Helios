@@ -20,6 +20,7 @@ namespace Helios
         static auto read_file(const std::string& path, Shader_Type& type) -> std::string;
 
     private:
+        std::string name;
         unsigned int shader_id_;
         std::string shader_source_;
         Shader_Type type_;

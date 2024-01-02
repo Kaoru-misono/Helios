@@ -248,7 +248,17 @@ namespace Helios
 		g_buffer->attach();
 
 		auto g_buffer_pass = std::make_shared<OpenGL_Pass>("g_buffer_pass");
+		g_buffer_pass->vertex_shader = m_rhi->create_shader( "shader/g_buffer_vert.glsl");
+		g_buffer_pass->fragment_shader = m_rhi->create_shader( "shader/g_buffer_frag.glsl");
+		g_buffer_pass->shader_process();
+
+		auto deferred_pass = std::make_shared<OpenGL_Pass>("deferred_pass");
+		deferred_pass->vertex_shader = m_rhi->create_shader( "shader/deferred_lighting_vert.glsl");
+		deferred_pass->fragment_shader = m_rhi->create_shader( "shader/deferred_lighting_frag.glsl");
+		deferred_pass->shader_process();
+
 		//TODO:
+
 
 
 		while (!Window::instance().should_close())
@@ -323,53 +333,34 @@ namespace Helios
 			ImGui::Checkbox("Debug: shadow map", &enable_debug);
 			ImGui::End();
 
+			// Deferred
+			g_buffer->bind();
 			{
-				test_pass->queue.clear();
+				g_buffer_pass->queue.clear();
 				int mesh_id = 0;
 				for (auto& mesh: marry.meshes) {
 					auto& vertex_info = mesh.vertex_info;
 					const int num_of_vertex = (int)(vertex_info.position.size());
 					auto position = std::span<glm::vec3>(vertex_info.position);
-					auto normal = std::span<glm::vec3>(vertex_info.normal);
 					auto texcoord = std::span<glm::vec2>(vertex_info.texcoord);
+					auto normal = std::span<glm::vec3>(vertex_info.normal);
 					RHI_Draw_Command cmd;
 					cmd.vertex_array = m_rhi->create_vertex_array();
 					auto& vertex_array = cmd.vertex_array;
 					vertex_array->primitive_count += position.size() / (size_t)3;
 					vertex_array->add_attributes({"POSITION", position});
-					vertex_array->add_attributes({"NORMAL", normal});
 					vertex_array->add_attributes({"TEXCOORD", texcoord});
+					vertex_array->add_attributes({"NORMAL", normal});
 					vertex_array->create_buffer_and_set_data();
 					cmd.uniform["mesh_id"] = mesh_id;
 					if (material_map[mesh_id] == nullptr)
 						std::cout << mesh_id << std::endl;
+					cmd.uniform.try_emplace("model_matrix", model_mat);
 					cmd.uniform.try_emplace("base_color", material_map[mesh_id]);
 					cmd.sampler.try_emplace("base_color", Texture_Sampler{});
-					cmd.uniform.try_emplace("shadow_map", depth_texture);
-					Texture_Sampler sampler;
-					sampler.min_filter = Texture_Sampler::Filter::nearest;
-					sampler.mag_filter = Texture_Sampler::Filter::nearest;
-					cmd.sampler.try_emplace("shadow_map", sampler);
-					test_pass->queue.emplace_back(std::move(cmd));
+					g_buffer_pass->queue.emplace_back(std::move(cmd));
 					mesh_id++;
 				}
-			}
-			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
-			test_pass->set_uniform("light_pos", light_pos);
-			test_pass->set_uniform("model_matrix", model_mat);
-			test_pass->set_uniform("light_matrix", light_matrix);
-			test_pass->set_uniform("shadow_bias", shadow_bias);
-			test_pass->set_uniform("time", (float)glfwGetTime());
-			// test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-			// test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			test_pass->clear_state.clear_color = true;
-			test_pass->clear_state.clear_color_value = clear_color;
-			test_pass->clear_state.clear_depth = true;
-			test_pass->update();
-			test_pass->render();
-
-			{
-				box_pass->queue.clear();
 				RHI_Draw_Command box_cmd;
 				box_cmd.vertex_array = m_rhi->create_vertex_array();
 				auto& vertex_array = box_cmd.vertex_array;
@@ -377,52 +368,23 @@ namespace Helios
 				auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
 				auto box_texcoord = std::span<glm::vec2>(cube.meshes[0].vertex_info.texcoord);
 				auto box_normal = std::span<glm::vec3>(cube.meshes[0].vertex_info.normal);
-				auto box_tangent = std::span<glm::vec3>(cube.meshes[0].vertex_info.tangent);
 				vertex_array->add_attributes({"POSITION", box_vert});
 				vertex_array->add_attributes({"TEXCOORD", box_texcoord});
 				vertex_array->add_attributes({"NORMAL", box_normal});
-				vertex_array->add_attributes({"TANGENT", box_tangent});
 				vertex_array->create_buffer_and_set_data();
 				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
-				box_cmd.uniform.try_emplace("shadow_map", depth_texture);
-				Texture_Sampler sampler;
-				sampler.min_filter = Texture_Sampler::Filter::nearest;
-				sampler.mag_filter = Texture_Sampler::Filter::nearest;
-				box_cmd.sampler.try_emplace("shadow_map", sampler);
 				box_cmd.uniform.try_emplace("base_color", wall_tex);
 				box_cmd.sampler.try_emplace("base_color", Texture_Sampler{});
-				box_cmd.uniform.try_emplace("normal", wall_normal_tex);
-				box_cmd.sampler.try_emplace("normal", Texture_Sampler{});
-				box_pass->queue.emplace_back(std::move(box_cmd));
+				g_buffer_pass->queue.emplace_back(std::move(box_cmd));
 			}
-			box_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-			box_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			box_pass->set_uniform("light_matrix", light_matrix);
-			box_pass->set_uniform("shadow_bias", shadow_bias);
-			box_pass->clear_state.allow_clear = false;
-			box_pass->update();
-			box_pass->render();
-			glm::mat4 light_box_mat = glm::translate(glm::mat4(1.0), light_pos);
-			light_box_mat = glm::scale(light_box_mat, glm::vec3(0.05f));
-			light_visualize_pass->set_uniform("model_matrix", light_box_mat);
-			light_visualize_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-			light_visualize_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			light_visualize_pass->update();
-			light_visualize_pass->render();
-			// draw skybox as last
-			glEnable(GL_DEPTH_TEST);
-        	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
-			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			skybox_pass->clear_state.allow_clear = false;
-			skybox_pass->update();
-        	// skybox cube
-        	skybox_pass->render();
-       		glDepthFunc(GL_LESS);
-
+			g_buffer_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+			g_buffer_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+			g_buffer_pass->clear_state.allow_clear = true;
+			g_buffer_pass->update();
+			g_buffer_pass->render();
+			g_buffer->unbind();
 
 			{
-				depth_debug_pass->queue.clear();
 				RHI_Draw_Command cmd;
 				cmd.vertex_array = m_rhi->create_vertex_array();
 				auto& quad_array = cmd.vertex_array;
@@ -432,28 +394,141 @@ namespace Helios
 				quad_array->add_attributes({"POSITION", quad_vert});
 				quad_array->add_attributes({"TEXCOORD", quad_texcoord});
 				quad_array->create_buffer_and_set_data();
-				cmd.uniform.try_emplace("near_plane", near_plane);
-				cmd.uniform.try_emplace("far_plane", far_plane);
-				cmd.uniform.try_emplace("depth_map", depth_texture);
-				Texture_Sampler sampler;
-				sampler.min_filter = Texture_Sampler::Filter::nearest;
-				sampler.mag_filter = Texture_Sampler::Filter::nearest;
-				cmd.sampler.try_emplace("depth_map", sampler);
-				depth_debug_pass->queue.emplace_back(std::move(cmd));
+				cmd.uniform.try_emplace("position", position_buffer);
+				cmd.sampler.try_emplace("position", Texture_Sampler{});
+				cmd.uniform.try_emplace("normal", normal_buffer);
+				cmd.sampler.try_emplace("normal", Texture_Sampler{});
+				cmd.uniform.try_emplace("albedo_spec", albedo_spec_buffer);
+				cmd.sampler.try_emplace("albedo_spec", Texture_Sampler{});
+				deferred_pass->queue.emplace_back(std::move(cmd));
 			}
-			if (enable_debug) {
-				depth_debug_pass->update();
-				depth_debug_pass->render();
-			}
-// 			framebuffer->unbind();
-//
-// 			frame_buffer_pass->clear_state.clear_color = true;
-// 			frame_buffer_pass->clear_state.clear_depth = false;
-// 			frame_buffer_pass->update();
-// 			frame_buffer_pass->enable_depth_test = false;
-// 			glBindTexture(GL_TEXTURE_2D, framebuffer->texColorBuffer);
-// 			frame_buffer_pass->render();
 
+			deferred_pass->update();
+			deferred_pass->render();
+
+			// Forward
+// 			{
+// 				test_pass->queue.clear();
+// 				int mesh_id = 0;
+// 				for (auto& mesh: marry.meshes) {
+// 					auto& vertex_info = mesh.vertex_info;
+// 					const int num_of_vertex = (int)(vertex_info.position.size());
+// 					auto position = std::span<glm::vec3>(vertex_info.position);
+// 					auto normal = std::span<glm::vec3>(vertex_info.normal);
+// 					auto texcoord = std::span<glm::vec2>(vertex_info.texcoord);
+// 					RHI_Draw_Command cmd;
+// 					cmd.vertex_array = m_rhi->create_vertex_array();
+// 					auto& vertex_array = cmd.vertex_array;
+// 					vertex_array->primitive_count += position.size() / (size_t)3;
+// 					vertex_array->add_attributes({"POSITION", position});
+// 					vertex_array->add_attributes({"NORMAL", normal});
+// 					vertex_array->add_attributes({"TEXCOORD", texcoord});
+// 					vertex_array->create_buffer_and_set_data();
+// 					cmd.uniform["mesh_id"] = mesh_id;
+// 					if (material_map[mesh_id] == nullptr)
+// 						std::cout << mesh_id << std::endl;
+// 					cmd.uniform.try_emplace("base_color", material_map[mesh_id]);
+// 					cmd.sampler.try_emplace("base_color", Texture_Sampler{});
+// 					cmd.uniform.try_emplace("shadow_map", depth_texture);
+// 					Texture_Sampler sampler;
+// 					sampler.min_filter = Texture_Sampler::Filter::nearest;
+// 					sampler.mag_filter = Texture_Sampler::Filter::nearest;
+// 					cmd.sampler.try_emplace("shadow_map", sampler);
+// 					test_pass->queue.emplace_back(std::move(cmd));
+// 					mesh_id++;
+// 				}
+// 			}
+// 			test_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
+// 			test_pass->set_uniform("light_pos", light_pos);
+// 			test_pass->set_uniform("model_matrix", model_mat);
+// 			test_pass->set_uniform("light_matrix", light_matrix);
+// 			test_pass->set_uniform("shadow_bias", shadow_bias);
+// 			test_pass->set_uniform("time", (float)glfwGetTime());
+// 			// test_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+// 			// test_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+// 			test_pass->clear_state.clear_color = true;
+// 			test_pass->clear_state.clear_color_value = clear_color;
+// 			test_pass->clear_state.clear_depth = true;
+// 			test_pass->update();
+// 			test_pass->render();
+//
+// 			{
+// 				box_pass->queue.clear();
+// 				RHI_Draw_Command box_cmd;
+// 				box_cmd.vertex_array = m_rhi->create_vertex_array();
+// 				auto& vertex_array = box_cmd.vertex_array;
+// 				vertex_array->primitive_count += 12;
+// 				auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
+// 				auto box_texcoord = std::span<glm::vec2>(cube.meshes[0].vertex_info.texcoord);
+// 				auto box_normal = std::span<glm::vec3>(cube.meshes[0].vertex_info.normal);
+// 				auto box_tangent = std::span<glm::vec3>(cube.meshes[0].vertex_info.tangent);
+// 				vertex_array->add_attributes({"POSITION", box_vert});
+// 				vertex_array->add_attributes({"TEXCOORD", box_texcoord});
+// 				vertex_array->add_attributes({"NORMAL", box_normal});
+// 				vertex_array->add_attributes({"TANGENT", box_tangent});
+// 				vertex_array->create_buffer_and_set_data();
+// 				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
+// 				box_cmd.uniform.try_emplace("shadow_map", depth_texture);
+// 				Texture_Sampler sampler;
+// 				sampler.min_filter = Texture_Sampler::Filter::nearest;
+// 				sampler.mag_filter = Texture_Sampler::Filter::nearest;
+// 				box_cmd.sampler.try_emplace("shadow_map", sampler);
+// 				box_cmd.uniform.try_emplace("base_color", wall_tex);
+// 				box_cmd.sampler.try_emplace("base_color", Texture_Sampler{});
+// 				box_cmd.uniform.try_emplace("normal", wall_normal_tex);
+// 				box_cmd.sampler.try_emplace("normal", Texture_Sampler{});
+// 				box_pass->queue.emplace_back(std::move(box_cmd));
+// 			}
+// 			box_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+// 			box_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+// 			box_pass->set_uniform("light_matrix", light_matrix);
+// 			box_pass->set_uniform("shadow_bias", shadow_bias);
+// 			box_pass->clear_state.allow_clear = false;
+// 			box_pass->update();
+// 			box_pass->render();
+// 			glm::mat4 light_box_mat = glm::translate(glm::mat4(1.0), light_pos);
+// 			light_box_mat = glm::scale(light_box_mat, glm::vec3(0.05f));
+// 			light_visualize_pass->set_uniform("model_matrix", light_box_mat);
+// 			light_visualize_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+// 			light_visualize_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+// 			light_visualize_pass->update();
+// 			light_visualize_pass->render();
+// 			// draw skybox as last
+// 			glEnable(GL_DEPTH_TEST);
+//         	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+// 			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
+// 			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+// 			skybox_pass->clear_state.allow_clear = false;
+// 			skybox_pass->update();
+//         	// skybox cube
+//         	skybox_pass->render();
+//        		glDepthFunc(GL_LESS);
+//
+//
+// 			{
+// 				depth_debug_pass->queue.clear();
+// 				RHI_Draw_Command cmd;
+// 				cmd.vertex_array = m_rhi->create_vertex_array();
+// 				auto& quad_array = cmd.vertex_array;
+// 				quad_array->primitive_count = 2;
+// 				auto quad_vert = std::span<glm::vec2>(quadVertices);
+// 				auto quad_texcoord = std::span<glm::vec2>(quadTexcoord);
+// 				quad_array->add_attributes({"POSITION", quad_vert});
+// 				quad_array->add_attributes({"TEXCOORD", quad_texcoord});
+// 				quad_array->create_buffer_and_set_data();
+// 				cmd.uniform.try_emplace("near_plane", near_plane);
+// 				cmd.uniform.try_emplace("far_plane", far_plane);
+// 				cmd.uniform.try_emplace("depth_map", depth_texture);
+// 				Texture_Sampler sampler;
+// 				sampler.min_filter = Texture_Sampler::Filter::nearest;
+// 				sampler.mag_filter = Texture_Sampler::Filter::nearest;
+// 				cmd.sampler.try_emplace("depth_map", sampler);
+// 				depth_debug_pass->queue.emplace_back(std::move(cmd));
+// 			}
+// 			if (enable_debug) {
+// 				depth_debug_pass->update();
+// 				depth_debug_pass->render();
+// 			}
 
 			context.m_imgui_layer->render();
 			Window::instance().swap_buffers();
