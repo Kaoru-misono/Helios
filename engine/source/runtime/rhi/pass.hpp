@@ -20,6 +20,7 @@ namespace Helios
         virtual auto update() -> void = 0;
         virtual auto render() -> void = 0;
         virtual auto set_uniform(std::string name, std::any uniform) -> void = 0;
+        virtual auto set_sampler(std::string name, Texture_Sampler sampler) -> void = 0;
         bool enable_depth_test{true};
         bool enable_depth_write{false};
         Depth_Function depth_func;

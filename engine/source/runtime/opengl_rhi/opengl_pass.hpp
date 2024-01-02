@@ -15,6 +15,7 @@ namespace Helios
 
         auto shader_process() -> void override;
         auto set_uniform(std::string name, std::any uniform) -> void override;
+        auto set_sampler(std::string name, Texture_Sampler sampler) -> void override;
 
         auto update() -> void override;
         auto render() -> void override;

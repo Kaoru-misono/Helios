@@ -35,6 +35,11 @@ namespace Helios
         gpu_program->set_uniform(name, uniform);
     }
 
+    auto OpenGL_Pass::set_sampler(std::string name, Texture_Sampler sampler) -> void
+    {
+        samplers[name] = sampler;
+    }
+
     auto OpenGL_Pass::update() -> void
     {
         if (enable_depth_test) {
@@ -53,23 +58,26 @@ namespace Helios
                 glClear(result);
         }
         gpu_program->bind();
-
+        int unit = 0;
+        for (auto& sampler: samplers) {
+            sampler.second.sampler_unit = unit;
+            gpu_program->set_uniform(sampler.first, unit);
+            unit++;
+        }
     }
 
     auto OpenGL_Pass::render() -> void
     {
         for(auto& cmd: queue) {
             cmd.vertex_array->bind();
-            int texture_unit = 0;
+            
             for (auto uniform: cmd.uniform) {
                 std::string const type = uniform.second.type().name();
                 if (type == "class std::shared_ptr<struct Helios::Texture>") {
                     auto texture = std::any_cast<std::shared_ptr<Texture>>(uniform.second);
-                    gpu_program->set_uniform(uniform.first, texture_unit);
-                    auto& sampler = cmd.sampler[uniform.first];
-                    glActiveTexture(GL_TEXTURE0 + texture_unit);
+                    auto& sampler = samplers[uniform.first];
+                    glActiveTexture(GL_TEXTURE0 + sampler.sampler_unit);
                     texture->set_sampler(sampler);
-                    texture_unit++;
                 }
                 else
                     gpu_program->set_uniform(uniform.first, uniform.second);
