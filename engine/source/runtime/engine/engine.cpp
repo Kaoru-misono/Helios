@@ -379,7 +379,6 @@ namespace Helios
 			g_buffer_pass->set_sampler("base_color", Texture_Sampler{});
 			g_buffer_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
 			g_buffer_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			g_buffer_pass->set_uniform("debug_mode", (int)open_debug_mode);
 			g_buffer_pass->clear_state.allow_clear = true;
 			g_buffer_pass->update();
 			g_buffer_pass->render();
@@ -404,6 +403,8 @@ namespace Helios
 			deferred_pass->set_sampler("position", Texture_Sampler{});
 			deferred_pass->set_sampler("normal", Texture_Sampler{});
 			deferred_pass->set_sampler("albedo_spec", Texture_Sampler{});
+			deferred_pass->set_uniform("debug_mode", (int)open_debug_mode);
+
 			deferred_pass->update();
 			deferred_pass->render();
 
@@ -486,24 +487,26 @@ namespace Helios
 			// box_pass->clear_state.allow_clear = false;
 			// box_pass->update();
 			// box_pass->render();
-			glm::mat4 light_box_mat = glm::translate(glm::mat4(1.0), light_pos);
-			light_box_mat = glm::scale(light_box_mat, glm::vec3(0.05f));
-			light_visualize_pass->enable_depth_test = true;
-			light_visualize_pass->set_uniform("model_matrix", light_box_mat);
-			light_visualize_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-			light_visualize_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			light_visualize_pass->update();
-			light_visualize_pass->render();
-			// draw skybox as last
-			glEnable(GL_DEPTH_TEST);
-        	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
-			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			skybox_pass->clear_state.allow_clear = false;
-			skybox_pass->update();
-        	// skybox cube
-        	skybox_pass->render();
-       		glDepthFunc(GL_LESS);
+			if (!open_debug_mode) {
+				glm::mat4 light_box_mat = glm::translate(glm::mat4(1.0), light_pos);
+				light_box_mat = glm::scale(light_box_mat, glm::vec3(0.05f));
+				light_visualize_pass->enable_depth_test = true;
+				light_visualize_pass->set_uniform("model_matrix", light_box_mat);
+				light_visualize_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+				light_visualize_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+				light_visualize_pass->update();
+				light_visualize_pass->render();
+				// draw skybox as last
+				glEnable(GL_DEPTH_TEST);
+				glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+				skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
+				skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+				skybox_pass->clear_state.allow_clear = false;
+				skybox_pass->update();
+				// skybox cube
+				skybox_pass->render();
+				glDepthFunc(GL_LESS);
+			}
 
 
 			// {
