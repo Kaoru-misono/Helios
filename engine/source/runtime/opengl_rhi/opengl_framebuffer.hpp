@@ -11,6 +11,7 @@ namespace Helios
         auto bind() -> void override;
         auto unbind() -> void override;
         auto attach() -> void override;
+        auto blit() -> void override;
 		unsigned int texColorBuffer;
 		unsigned int rbo;
 

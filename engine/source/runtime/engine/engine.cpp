@@ -323,6 +323,7 @@ namespace Helios
 			framebuffer->unbind();
 			static bool enable_debug = false;
 			static float shadow_bias = 0.01f;
+			static bool open_debug_mode = false;
 			ImGui::Begin("Settings");
 			ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
 			ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
@@ -330,6 +331,7 @@ namespace Helios
 			ImGui::DragFloat3("light_pos", glm::value_ptr(light_pos), 0.01f);
 			ImGui::DragFloat("shadow_bias", &shadow_bias, 0.001f);
 			ImGui::Checkbox("Debug: shadow map", &enable_debug);
+			ImGui::Checkbox("Deferred debug", &open_debug_mode);
 			ImGui::End();
 
 			// Deferred
@@ -377,12 +379,14 @@ namespace Helios
 			g_buffer_pass->set_sampler("base_color", Texture_Sampler{});
 			g_buffer_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
 			g_buffer_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+			g_buffer_pass->set_uniform("debug_mode", (int)open_debug_mode);
 			g_buffer_pass->clear_state.allow_clear = true;
 			g_buffer_pass->update();
 			g_buffer_pass->render();
 			g_buffer->unbind();
 
 			{
+				deferred_pass->queue.clear();
 				RHI_Draw_Command cmd;
 				cmd.vertex_array = m_rhi->create_vertex_array();
 				auto& quad_array = cmd.vertex_array;
@@ -402,6 +406,8 @@ namespace Helios
 			deferred_pass->set_sampler("albedo_spec", Texture_Sampler{});
 			deferred_pass->update();
 			deferred_pass->render();
+
+			g_buffer->blit();
 
 			// Forward
 			// Texture_Sampler shadow_sampler;
@@ -480,23 +486,24 @@ namespace Helios
 			// box_pass->clear_state.allow_clear = false;
 			// box_pass->update();
 			// box_pass->render();
-			// glm::mat4 light_box_mat = glm::translate(glm::mat4(1.0), light_pos);
-			// light_box_mat = glm::scale(light_box_mat, glm::vec3(0.05f));
-			// light_visualize_pass->set_uniform("model_matrix", light_box_mat);
-			// light_visualize_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
-			// light_visualize_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			// light_visualize_pass->update();
-			// light_visualize_pass->render();
-			// // draw skybox as last
-			// glEnable(GL_DEPTH_TEST);
-        	// glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-			// skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
-			// skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
-			// skybox_pass->clear_state.allow_clear = false;
-			// skybox_pass->update();
-        	// // skybox cube
-        	// skybox_pass->render();
-       		// glDepthFunc(GL_LESS);
+			glm::mat4 light_box_mat = glm::translate(glm::mat4(1.0), light_pos);
+			light_box_mat = glm::scale(light_box_mat, glm::vec3(0.05f));
+			light_visualize_pass->enable_depth_test = true;
+			light_visualize_pass->set_uniform("model_matrix", light_box_mat);
+			light_visualize_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
+			light_visualize_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+			light_visualize_pass->update();
+			light_visualize_pass->render();
+			// draw skybox as last
+			glEnable(GL_DEPTH_TEST);
+        	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			skybox_pass->set_uniform("view_matrix", glm::mat4(glm::mat3(context.m_main_camera->get_view_matrix())));
+			skybox_pass->set_uniform("projection_matrix", context.m_main_camera->get_projection_matrix());
+			skybox_pass->clear_state.allow_clear = false;
+			skybox_pass->update();
+        	// skybox cube
+        	skybox_pass->render();
+       		glDepthFunc(GL_LESS);
 
 
 			// {

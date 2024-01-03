@@ -84,6 +84,8 @@ namespace Helios
         texture->kind = kind;
         texture->format = format;
         texture->gl_kind = GL_TEXTURE_2D;
+        texture->width = width;
+        texture->height = height;
         texture->bind();
         // TODO: 1024 should be changeable
         if (format == Texture::Format::depth24)

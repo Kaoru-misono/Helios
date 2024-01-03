@@ -54,6 +54,7 @@ namespace Helios
         virtual auto bind() -> void = 0;
         virtual auto unbind() -> void = 0;
         virtual auto attach() -> void = 0;
+        virtual auto blit() -> void = 0;
     };
 
 

@@ -19,6 +19,8 @@ namespace Helios
         static auto load_cube_map_texture(std::vector<std::string> const& paths, bool flip = false) -> std::shared_ptr<OpenGL_Texture>;
         static auto create_texture(Texture::Kind kind, Texture::Format format, int width, int height) -> std::shared_ptr<OpenGL_Texture>;
         GLenum gl_kind;
+        int width;
+        int height;
     private:
         GLuint resource;
     };
