@@ -35,6 +35,14 @@ namespace Helios
 		glTexParameteri(gl_kind, GL_TEXTURE_MAG_FILTER, to_gl_enum(sampler.mag_filter));
     }
 
+    auto OpenGL_Texture::copy_data_from_buffer(void* texture_data) const -> void
+    {
+        bind();
+        //TODO: not only RGBA16F
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, texture_data);
+        unbind();
+    }
+
     auto OpenGL_Texture::load_2D_texture(std::string const& path, bool flip) -> std::shared_ptr<OpenGL_Texture>
     {
         auto texture = std::make_shared<OpenGL_Texture>();
@@ -90,10 +98,14 @@ namespace Helios
         // TODO: 1024 should be changeable
         if (format == Texture::Format::depth24)
             glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        else if (format == Texture::Format::r8)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RGB, GL_FLOAT, NULL);
         else if (format == Texture::Format::rgba8)
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
         else if (format == Texture::Format::rgb16f)
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+        else if (format == Texture::Format::rgba16f)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
         texture->unbind();
         return texture;
     }

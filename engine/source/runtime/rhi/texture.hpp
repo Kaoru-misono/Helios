@@ -48,6 +48,7 @@ namespace Helios
             rgb8,
             rgba8,
             rgb16f,
+            rgba16f,
             depth24,
         };
         std::vector<std::shared_ptr<Image>> images;
@@ -57,5 +58,6 @@ namespace Helios
         virtual auto bind() const -> void = 0;
         virtual auto unbind() const -> void = 0;
         virtual auto set_sampler(Texture_Sampler const& sampler) const -> void = 0;
+        virtual auto copy_data_from_buffer(void* texture_data) const -> void = 0;
     };
 }

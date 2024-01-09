@@ -34,13 +34,19 @@ namespace Helios
 		for (auto& color: colors) {
 			auto texture = std::reinterpret_pointer_cast<OpenGL_Texture>(color.texture);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + idx, GL_TEXTURE_2D, texture->id(), 0);
-
 			idx++;
 		}
-		GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-		glDrawBuffers(3, attachments);
-		auto depth_texture = std::reinterpret_pointer_cast<OpenGL_Texture>(depth.texture);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture->id(), 0);
+		if (buffer_size == 1) {
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		}
+		if (buffer_size == 3) {
+			GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+			glDrawBuffers(3, attachments);
+		}
+		if (depth.texture != nullptr) {
+			auto depth_texture = std::reinterpret_pointer_cast<OpenGL_Texture>(depth.texture);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture->id(), 0);
+		}
 
 		if (colors.size() == 0) {
 			glDrawBuffer(GL_NONE);
@@ -56,9 +62,9 @@ namespace Helios
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, resource);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Write to default framebuffer
         // blit to default framebuffer. Note that this may or may not work as the internal formats of both the FBO and default framebuffer have to match.
-        // the internal formats are implementation defined. This works on all of my systems, but if it doesn't on yours you'll likely have to write to the 		
+        // the internal formats are implementation defined. This works on all of my systems, but if it doesn't on yours you'll likely have to write to the
         // depth buffer in another shader stage (or somehow see to match the default framebuffer's internal format with the FBO's internal format).
-        glBlitFramebuffer(0, 0, Window::instance().get_width(), Window::instance().get_height(), 0, 0, Window::instance().get_width(), Window::instance().get_height(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, Window::instance().get_width(), Window::instance().get_height(), 0, 0, Window::instance().get_width(), Window::instance().get_height(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 }

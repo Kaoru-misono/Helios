@@ -10,7 +10,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <glm/gtc/type_ptr.hpp>
-
+#include "util/math_func.hpp"
 #include "logger/logger.hpp"
 #include "logger/logger_marco.hpp"
 #include "window/window.hpp"
@@ -75,7 +75,7 @@ namespace Helios
 
 		Assimp_Config config;
 		Assimp_Model bunny = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/bunny_1k.obj", config);
-		Assimp_Model marry = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/Alisya/pink.pmx", config);
+		Assimp_Model marry = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/Alisya/Alysia.fbx", config);
 		Assimp_Model cube = Assimp_Model::load_model("D:/github/Helios/engine/asset/model/cube.obj", config);
 		auto cloth_tex = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth.png"});
 		auto cloth_tex_2 = m_rhi->load_texture(Texture::Kind::TEX_2D, {"D:/github/Helios/engine/asset/model/Alisya/cloth_2.png"});
@@ -239,9 +239,9 @@ namespace Helios
 		int width =  Window::instance().get_width();
 		int height =  Window::instance().get_height();
 
-		auto position_buffer = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::rgb16f, width, height);
+		auto position_buffer = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::rgba16f, width, height);
 		g_buffer->colors.emplace_back(position_buffer);
-		auto normal_buffer = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::rgb16f, width, height);
+		auto normal_buffer = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::rgba16f, width, height);
 		g_buffer->colors.emplace_back(normal_buffer);
 		auto albedo_spec_buffer = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::rgba8, width, height);
 		g_buffer->colors.emplace_back(albedo_spec_buffer);
@@ -253,6 +253,88 @@ namespace Helios
 		g_buffer_pass->vertex_shader = "shader/g_buffer_vert.glsl";
 		g_buffer_pass->fragment_shader = "shader/g_buffer_frag.glsl";
 		g_buffer_pass->shader_process();
+
+		auto ssao_framebuffer = m_rhi->create_framebuffer();
+		auto ssao_color = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::r8, width, height);
+		ssao_framebuffer->colors.emplace_back(ssao_color);
+		ssao_framebuffer->attach();
+		auto ssao_bulr_framebuffer = m_rhi->create_framebuffer();
+		auto ssao_color_bulr = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::r8, width, height);
+		ssao_bulr_framebuffer->colors.emplace_back(ssao_color_bulr);
+		ssao_bulr_framebuffer->attach();
+
+		// Also create framebuffer to hold SSAO processing stage
+		// GLuint ssaoFBO, ssaoBlurFBO;
+		// glGenFramebuffers(1, &ssaoFBO);  glGenFramebuffers(1, &ssaoBlurFBO);
+		// glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+		// GLuint ssaoColorBuffer, ssaoColorBufferBlur;
+		// // - SSAO color buffer
+		// glGenTextures(1, &ssaoColorBuffer);
+		// glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+		// glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		// glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
+		// if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		// 	std::cout << "SSAO Framebuffer not complete!" << std::endl;
+		// // - and blur stage
+		// glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+		// glGenTextures(1, &ssaoColorBufferBlur);
+		// glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+		// glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		// glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
+		// if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		// 	std::cout << "SSAO Blur Framebuffer not complete!" << std::endl;
+		// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Sample kernel
+		std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
+		std::default_random_engine generator;
+		std::vector<glm::vec3> ssaoKernel;
+		for (GLuint i = 0; i < 64; ++i)
+		{
+			glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+			sample = glm::normalize(sample);
+			sample *= randomFloats(generator);
+			GLfloat scale = GLfloat(i) / 64.0;
+
+			// Scale samples s.t. they're more aligned to center of kernel
+			scale = lerp(0.1f, 1.0f, scale * scale);
+			sample *= scale;
+			ssaoKernel.push_back(sample);
+		}
+
+		// Noise texture
+		std::vector<glm::vec3> ssaoNoise;
+		for (GLuint i = 0; i < 16; i++)
+		{
+			glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
+			ssaoNoise.push_back(noise);
+		}
+		// GLuint noiseTexture; glGenTextures(1, &noiseTexture);
+		// glBindTexture(GL_TEXTURE_2D, noiseTexture);
+		// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		auto noise_texture = m_rhi->create_texture(Texture::Kind::TEX_2D, Texture::Format::rgb16f, 4, 4);
+		noise_texture->copy_data_from_buffer(ssaoNoise.data());
+		Texture_Sampler ssao_sampler;
+		ssao_sampler.min_filter = Texture_Sampler::Filter::nearest;
+		ssao_sampler.mag_filter = Texture_Sampler::Filter::nearest;
+
+		auto ssao_color_pass = std::make_shared<OpenGL_Pass>("ssao_color_pass");
+		ssao_color_pass->vertex_shader = "shader/ssao_vert.glsl";
+		ssao_color_pass->fragment_shader = "shader/ssao_frag.glsl";
+		ssao_color_pass->shader_process();
+
+		auto ssao_blur_pass = std::make_shared<OpenGL_Pass>("ssao_blur_pass");
+		ssao_blur_pass->vertex_shader = "shader/ssao_blur_vert.glsl";
+		ssao_blur_pass->fragment_shader = "shader/ssao_blur_frag.glsl";
+		ssao_blur_pass->shader_process();
 
 		auto deferred_pass = std::make_shared<OpenGL_Pass>("deferred_pass");
 		deferred_pass->vertex_shader = "shader/deferred_lighting_vert.glsl";
@@ -281,8 +363,10 @@ namespace Helios
 			static glm::vec4 clear_color = glm::vec4(0.8f, 0.5f, 0.3f, 1.0f);
 			static glm::vec3 model_pos = glm::vec3(0.0f, -1.0f, 0.0f);
 			static glm::vec3 box_pos = glm::vec3(0.0f, -1.1f, -0.6f);
-			glm::mat4 model_mat = glm::translate(glm::mat4(1.0f), model_pos);
-			model_mat = glm::scale(model_mat, glm::vec3(0.1f));
+			glm::mat4 model_mat = glm::mat4(1.0f);
+			model_mat = glm::scale(model_mat, glm::vec3(1.0f));
+			model_mat = glm::toMat4(glm::quat(glm::vec3(-glm::radians(90.0f), 0.0f, 0.0f))) * model_mat;
+			model_mat = glm::translate(glm::mat4(1.0f), model_pos) * model_mat;
 			glm::mat4 box_model_mat = glm::translate(glm::mat4(1.0f), box_pos);
 			box_model_mat = glm::scale(box_model_mat, glm::vec3(2.0f, 0.1f, 2.0f));
 			glm::mat4 light_proj, light_view;
@@ -324,14 +408,20 @@ namespace Helios
 			static bool enable_debug = false;
 			static float shadow_bias = 0.01f;
 			static bool open_debug_mode = false;
+			static bool open_ssao = false;
+			static float stair_num = 2.0f;
+			static float ambient = 0.2f;
 			ImGui::Begin("Settings");
 			ImGui::ColorEdit3("Clear Color", glm::value_ptr(clear_color));
 			ImGui::DragFloat3("model_pos", glm::value_ptr(model_pos), 0.01f);
 			ImGui::DragFloat3("box_pos", glm::value_ptr(box_pos), 0.01f);
 			ImGui::DragFloat3("light_pos", glm::value_ptr(light_pos), 0.01f);
 			ImGui::DragFloat("shadow_bias", &shadow_bias, 0.001f);
+			ImGui::DragFloat("stair_num", &stair_num, 0.01f);
+			ImGui::DragFloat("ambient", &ambient, 0.01f);
 			ImGui::Checkbox("Debug: shadow map", &enable_debug);
 			ImGui::Checkbox("Deferred debug", &open_debug_mode);
+			ImGui::Checkbox("SSAO", &open_ssao);
 			ImGui::End();
 
 			// Deferred
@@ -361,20 +451,20 @@ namespace Helios
 					g_buffer_pass->queue.emplace_back(std::move(cmd));
 					mesh_id++;
 				}
-				RHI_Draw_Command box_cmd;
-				box_cmd.vertex_array = m_rhi->create_vertex_array();
-				auto& vertex_array = box_cmd.vertex_array;
-				vertex_array->primitive_count += 12;
-				auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
-				auto box_texcoord = std::span<glm::vec2>(cube.meshes[0].vertex_info.texcoord);
-				auto box_normal = std::span<glm::vec3>(cube.meshes[0].vertex_info.normal);
-				vertex_array->add_attributes({"POSITION", box_vert});
-				vertex_array->add_attributes({"TEXCOORD", box_texcoord});
-				vertex_array->add_attributes({"NORMAL", box_normal});
-				vertex_array->create_buffer_and_set_data();
-				box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
-				box_cmd.uniform.try_emplace("base_color", wall_tex);
-				g_buffer_pass->queue.emplace_back(std::move(box_cmd));
+				// RHI_Draw_Command box_cmd;
+				// box_cmd.vertex_array = m_rhi->create_vertex_array();
+				// auto& vertex_array = box_cmd.vertex_array;
+				// vertex_array->primitive_count += 12;
+				// auto box_vert = std::span<glm::vec3>(cube.meshes[0].vertex_info.position);
+				// auto box_texcoord = std::span<glm::vec2>(cube.meshes[0].vertex_info.texcoord);
+				// auto box_normal = std::span<glm::vec3>(cube.meshes[0].vertex_info.normal);
+				// vertex_array->add_attributes({"POSITION", box_vert});
+				// vertex_array->add_attributes({"TEXCOORD", box_texcoord});
+				// vertex_array->add_attributes({"NORMAL", box_normal});
+				// vertex_array->create_buffer_and_set_data();
+				// box_cmd.uniform.try_emplace("model_matrix", box_model_mat);
+				// box_cmd.uniform.try_emplace("base_color", wall_tex);
+				// g_buffer_pass->queue.emplace_back(std::move(box_cmd));
 			}
 			g_buffer_pass->set_sampler("base_color", Texture_Sampler{});
 			g_buffer_pass->set_uniform("view_matrix", context.m_main_camera->get_view_matrix());
@@ -383,6 +473,72 @@ namespace Helios
 			g_buffer_pass->update();
 			g_buffer_pass->render();
 			g_buffer->unbind();
+//
+// 			glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+//             glClear(GL_COLOR_BUFFER_BIT);
+//
+//             glActiveTexture(GL_TEXTURE0);
+//             glBindTexture(GL_TEXTURE_2D, std::reinterpret_pointer_cast<OpenGL_Texture>(position_buffer)->id());
+//             glActiveTexture(GL_TEXTURE1);
+//             glBindTexture(GL_TEXTURE_2D, std::reinterpret_pointer_cast<OpenGL_Texture>(normal_buffer)->id());
+//             glActiveTexture(GL_TEXTURE2);
+//             glBindTexture(GL_TEXTURE_2D, noiseTexture);
+//             // Send kernel + rotation
+//             for (GLuint i = 0; i < 64; ++i)
+//     			ssao_color_pass->set_uniform(("samples[" + std::to_string(i) + "]").c_str(), ssaoKernel[i]);
+// 			ssao_color_pass->set_uniform("projection", context.m_main_camera->get_projection_matrix());
+//             {
+// 				ssao_color_pass->queue.clear();
+// 				RHI_Draw_Command cmd;
+// 				cmd.vertex_array = m_rhi->create_vertex_array();
+// 				auto& quad_array = cmd.vertex_array;
+// 				quad_array->primitive_count = 2;
+// 				auto quad_vert = std::span<glm::vec2>(quadVertices);
+// 				auto quad_texcoord = std::span<glm::vec2>(quadTexcoord);
+// 				quad_array->add_attributes({"POSITION", quad_vert});
+// 				quad_array->add_attributes({"TEXCOORD", quad_texcoord});
+// 				quad_array->create_buffer_and_set_data();
+// 				cmd.uniform.try_emplace("position_depth", position_buffer);
+// 				cmd.uniform.try_emplace("normal", normal_buffer);
+// 				cmd.uniform.try_emplace("noise_tex", noise_texture);
+// 				ssao_color_pass->queue.emplace_back(std::move(cmd));
+// 				cmd.vertex_array->bind();
+// 				ssao_color_pass->set_uniform("position_depth", 0);
+// 				ssao_color_pass->set_uniform("normal", 1);
+// 				ssao_color_pass->set_uniform("noise_tex", 2);
+//
+// 				auto primitive_count = cmd.vertex_array->primitive_count;
+// 				glDrawArrays(GL_TRIANGLES, 0, primitive_count * 3);
+// 			}
+//
+//         	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			ssao_framebuffer->bind();
+			ssao_color_pass->clear_state.clear_depth = false;
+			{
+				ssao_color_pass->queue.clear();
+				RHI_Draw_Command cmd;
+				cmd.vertex_array = m_rhi->create_vertex_array();
+				auto& quad_array = cmd.vertex_array;
+				quad_array->primitive_count = 2;
+				auto quad_vert = std::span<glm::vec2>(quadVertices);
+				auto quad_texcoord = std::span<glm::vec2>(quadTexcoord);
+				quad_array->add_attributes({"POSITION", quad_vert});
+				quad_array->add_attributes({"TEXCOORD", quad_texcoord});
+				quad_array->create_buffer_and_set_data();
+				cmd.uniform.try_emplace("position_depth", position_buffer);
+				cmd.uniform.try_emplace("normal", normal_buffer);
+				cmd.uniform.try_emplace("noise_tex", noise_texture);
+				ssao_color_pass->queue.emplace_back(std::move(cmd));
+			}
+			for (GLuint i = 0; i < 64; ++i)
+                ssao_color_pass->set_uniform(("samples[" + std::to_string(i) + "]").c_str(), ssaoKernel[i]);
+            ssao_color_pass->set_uniform("projection", context.m_main_camera->get_projection_matrix());
+			ssao_color_pass->set_sampler("position_depth", ssao_sampler);
+			ssao_color_pass->set_sampler("normal", ssao_sampler);
+			ssao_color_pass->set_sampler("noise_tex", ssao_sampler);
+			ssao_color_pass->update();
+			ssao_color_pass->render();
+			ssao_framebuffer->unbind();
 
 			{
 				deferred_pass->queue.clear();
@@ -398,13 +554,22 @@ namespace Helios
 				cmd.uniform.try_emplace("position", position_buffer);
 				cmd.uniform.try_emplace("normal", normal_buffer);
 				cmd.uniform.try_emplace("albedo_spec", albedo_spec_buffer);
+				cmd.uniform.try_emplace("ssao_tex", ssao_color);
 				deferred_pass->queue.emplace_back(std::move(cmd));
 			}
-			deferred_pass->set_sampler("position", Texture_Sampler{});
-			deferred_pass->set_sampler("normal", Texture_Sampler{});
-			deferred_pass->set_sampler("albedo_spec", Texture_Sampler{});
+			Texture_Sampler gbuffer_sampler;
+			gbuffer_sampler.warp_s = Texture_Sampler::Warp::clamp_to_edge;
+			gbuffer_sampler.warp_t = Texture_Sampler::Warp::clamp_to_edge;
+			deferred_pass->set_sampler("position", gbuffer_sampler);
+			deferred_pass->set_sampler("normal", gbuffer_sampler);
+			deferred_pass->set_sampler("albedo_spec", gbuffer_sampler);
+			deferred_pass->set_sampler("ssao_tex", ssao_sampler);
 			deferred_pass->set_uniform("debug_mode", (int)open_debug_mode);
-
+			deferred_pass->set_uniform("open_ssao", (int)open_ssao);
+			deferred_pass->set_uniform("stair_num", stair_num);
+			deferred_pass->set_uniform("camera_pos", context.m_main_camera->get_position());
+			deferred_pass->set_uniform("light_pos", light_pos);
+			deferred_pass->set_uniform("ambient", ambient);
 			deferred_pass->update();
 			deferred_pass->render();
 
@@ -434,8 +599,8 @@ namespace Helios
 			// 		cmd.uniform["mesh_id"] = mesh_id;
 			// 		if (material_map[mesh_id] == nullptr)
 			// 			std::cout << mesh_id << std::endl;
-			// 		cmd.uniform.try_emplace("base_color", material_map[mesh_id]);	
-			// 		cmd.uniform.try_emplace("shadow_map", depth_texture);			
+			// 		cmd.uniform.try_emplace("base_color", material_map[mesh_id]);
+			// 		cmd.uniform.try_emplace("shadow_map", depth_texture);
 			// 		test_pass->queue.emplace_back(std::move(cmd));
 			// 		mesh_id++;
 			// 	}
